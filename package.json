@@ -1,9 +1,14 @@
 {
+  "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "tsc"
   }
 }
