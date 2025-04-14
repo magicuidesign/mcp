@@ -15,6 +15,23 @@ const ComponentSchema = z.object({
   description: z.string().optional(),
 });
 
+// Define schema for individual component with content
+const IndividualComponentSchema = ComponentSchema.extend({
+  content: z.string(),
+});
+
+// Define schema for component detail response
+const ComponentDetailSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  files: z.array(z.object({
+    content: z.string(),
+    type: z.string(),
+    path: z.string(),
+    target: z.string(),
+  })),
+});
+
 // Function to fetch UI components
 async function fetchUIComponents() {
   try {
@@ -35,6 +52,21 @@ async function fetchUIComponents() {
   } catch (error) {
     console.error("Error fetching MagicUI components:", error);
     return [];
+  }
+}
+
+// Function to fetch individual component details
+async function fetchComponentDetails(name: string) {
+  try {
+    const response = await fetch(`https://magicui.design/r/${name}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch component ${name}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return ComponentDetailSchema.parse(data);
+  } catch (error) {
+    console.error(`Error fetching component ${name}:`, error);
+    throw error;
   }
 }
 
@@ -77,12 +109,32 @@ async function registerComponentTools() {
       `get${formattedName}`,
       {},
       async () => {
-        return {
-          content: [{ 
-            type: "text", 
-            text: JSON.stringify(component, null, 2) 
-          }]
-        };
+        try {
+          const componentDetails = await fetchComponentDetails(component.name);
+          
+          // Extract content from the first file
+          const content = componentDetails.files[0]?.content || "";
+          
+          return {
+            content: [{ 
+              type: "text", 
+              text: JSON.stringify({
+                name: component.name,
+                type: component.type,
+                description: component.description,
+                content: content
+              }, null, 2) 
+            }]
+          };
+        } catch (error) {
+          return {
+            content: [{ 
+              type: "text", 
+              text: `Failed to fetch details for component ${component.name}` 
+            }],
+            isError: true
+          };
+        }
       }
     );
   }
