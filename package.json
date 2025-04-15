@@ -13,7 +13,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && shx chmod +x dist/*.js", 
+    "build": "tsc && shx chmod +x dist/*.js",
     "start": "node dist/server.js"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "shx": "^0.4.0",
     "typescript": "^5.8.3"
   },
   "author": "Beau Hayes-Pollard <bbh44@cornell.edu>",
