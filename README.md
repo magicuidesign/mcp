@@ -77,8 +77,8 @@ Visit the [Inspector documentation](https://docs.modelcontextprotocol.dev/mcp-in
 
 1.  **Clone the repository:**
     ```bash
-    git clone beaubhp/magicui-mcp
-    cd magicui-mcp # Or your project directory name
+    git clone magicuidesign/mcp
+    cd mcp # Or your project directory name
     ```
 2.  **Install dependencies:**
     ```bash
@@ -115,4 +115,4 @@ While primarily intended as a standalone MCP server run via `npx`, you can also 
 npm install @magicuidesign/mcp
 ```
 
-**License:** ISC
+ISC
