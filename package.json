@@ -1,5 +1,18 @@
 {
+  "name": "mcp",
+  "version": "0.1.0",
+  "description": "The official MCP server for Magic UI.",
   "type": "module",
+  "main": "./dist/server.js",
+  "module": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
     "zod": "^3.24.2"
@@ -8,7 +21,6 @@
     "@types/node": "^22.14.1",
     "typescript": "^5.8.3"
   },
-  "scripts": {
-    "build": "tsc"
-  }
+  "author": "Beau Hayes-Pollard <bbh44@cornell.edu>",
+  "license": "ISC"
 }

@@ -13,6 +13,7 @@
     "module": "NodeNext",
     "outDir": "dist",
     "sourceMap": true,
+    "declaration": true,
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
