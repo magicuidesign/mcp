@@ -4,21 +4,21 @@ import { z } from "zod";
 export const ComponentSchema = z.object({
   name: z.string(),
   type: z.string(),
-  description: z.string().optional(),
+  description: z.string().optional(), // Only optional because of interactive-hover-button
 });
 
 // Define schema for an individual example
 const ExampleSchema = z.object({
-  name: z.string().optional(),
-  type: z.string().optional(),
-  description: z.string().optional(),
-  content: z.string().optional(),
+  name: z.string(),
+  type: z.string(),
+  description: z.string(),
+  content: z.string(),
 });
 
 // Define schema for individual component with content and examples
 export const IndividualComponentSchema = ComponentSchema.extend({
   content: z.string(),
-  examples: z.array(ExampleSchema).optional(),
+  examples: z.array(ExampleSchema),
 });
 
 // Define schema for component detail response
