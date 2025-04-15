@@ -11,7 +11,7 @@ This server enables AI assistants like Cursor to access information about Magic 
 *   Get a list of all available Magic UI components.
 *   Retrieve implementation details and code examples for specific components across various categories (Core, Special Effects, Animations, Text, Buttons, Backgrounds, Device Mocks).
 
-## Setup with Cursor
+## Setup with Cursor (or Claude Desktop)
 
 1.  **Install Cursor:** Ensure you have the Cursor IDE installed.
 2.  **Configure Cursor's MCP:** You need to tell Cursor how to run your MCP server.
