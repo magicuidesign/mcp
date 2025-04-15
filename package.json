@@ -2,6 +2,10 @@
   "name": "@magicuidesign/mcp",
   "version": "0.1.4",
   "description": "Official MCP server for Magic UI.",
+  "repository": {
+  "type": "git",
+  "url": "git+https://github.com/beaubhp/magicui-mcp.git"
+},
   "type": "module",
   "main": "./dist/server.js",
   "module": "./dist/server.js",
