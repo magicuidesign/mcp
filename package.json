@@ -1,7 +1,7 @@
 {
   "name": "mcp",
   "version": "0.1.0",
-  "description": "The official MCP server for Magic UI.",
+  "description": "Official MCP server for Magic UI.",
   "type": "module",
   "main": "./dist/server.js",
   "module": "./dist/server.js",
