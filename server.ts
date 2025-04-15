@@ -70,18 +70,14 @@ function buildExampleComponentMap(
 
 // Register individual tools for each component
 async function registerComponentTools() {
-  // Fetch UI components and Example components metadata concurrently
   const [components, allExampleComponents] = await Promise.all([
     fetchUIComponents(),
     fetchExampleComponents()
   ]);
 
-  // Use the helper function to build the map
   const exampleNamesByComponent = buildExampleComponentMap(allExampleComponents);
 
-  // Register tools for each UI component
   for (const component of components) {
-    // Format component name to camelCase
     const formattedName = formatComponentName(component.name);
     
     server.tool(
@@ -89,19 +85,15 @@ async function registerComponentTools() {
       {},
       async () => {
         try {
-          // Fetch main component details (code)
           const componentDetails = await fetchComponentDetails(component.name);
           const componentContent = componentDetails.files[0]?.content;
 
-          // 1. Look up associated example names
           const relevantExampleNames = exampleNamesByComponent.get(component.name) || [];
 
-          // 2. Fetch full details (including content) for each relevant example
           const exampleDetailsList = await Promise.all(
             relevantExampleNames.map(name => fetchExampleDetails(name))
           );
 
-          // 3. Format examples for the final output schema (ExampleSchema)
           const formattedExamples = exampleDetailsList
             .filter(details => details !== null) 
             .map(details => ({
@@ -111,13 +103,12 @@ async function registerComponentTools() {
               content: details.files[0]?.content,
             }));
 
-          // 4. Validate final structure, including the formatted examples
           const validatedComponent = IndividualComponentSchema.parse({
             name: component.name,
             type: component.type,
             description: component.description,
-            content: componentContent, // Main component content
-            examples: formattedExamples // Pass the processed examples
+            content: componentContent,
+            examples: formattedExamples
           });
           
           return {
@@ -127,7 +118,6 @@ async function registerComponentTools() {
             }]
           };
         } catch (error) {
-          // Handle potential errors during fetch or parse
           let errorMessage = `Error processing component ${component.name}`;
           if (error instanceof Error) {
              errorMessage += `: ${error.message}`;
@@ -144,11 +134,9 @@ async function registerComponentTools() {
 
 // Initialize component tools before starting the server
 registerComponentTools().then(() => {
-  // Start the server with stdio transport
   const transport = new StdioServerTransport();
   server.connect(transport);
 }).catch(error => {
-  // Start the server anyway
   const transport = new StdioServerTransport();
   server.connect(transport);
 });

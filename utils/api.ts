@@ -9,7 +9,6 @@ export async function fetchUIComponents() {
     }
     const data = await response.json();
     
-    // Filter for base UI items only
     return data.items
       .filter((item: any) => item.type === "registry:ui")
       .map((item: any) => {
@@ -20,14 +19,11 @@ export async function fetchUIComponents() {
             description: item.description,
           });
         } catch (parseError) {
-          // console.error(`Failed to parse component item: ${item?.name || 'unknown'}`, parseError, item); // Log the problematic item (optional, keep commented for now)
-          return null; // Return null for items that fail parsing
+          return null;
         }
       })
 
   } catch (error) {
-    // console.error("Error fetching MagicUI components:", error); // Keep commented out
-    // Still return empty array on outer fetch/parse errors
     return [];
   }
 }
@@ -53,7 +49,6 @@ export async function fetchExampleComponents() {
     const response = await fetch("https://magicui.design/registry.json");
     const data = await response.json();
     
-    // Filter for example items only
     return data.items
       .filter((item: any) => item.type === "registry:example")
       .map((item: any) => {
