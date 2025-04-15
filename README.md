@@ -2,8 +2,6 @@
 
 [![npm version](https://badge.fury.io/js/%40magicuidesign%2Fmcp.svg)](https://badge.fury.io/js/%40magicuidesign%2Fmcp)
 
-**Version:** 0.1.4
-
 Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design/).
 
 This server enables AI assistants like Cursor to access information about Magic UI components, including lists of available components and their implementation details.
