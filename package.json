@@ -1,18 +1,20 @@
 {
   "name": "@magicuidesign/mcp",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Official MCP server for Magic UI.",
   "type": "module",
   "main": "./dist/server.js",
   "module": "./dist/server.js",
   "types": "./dist/server.d.ts",
+  "bin": {
+    "mcp": "./dist/server.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc", 
-    "start": "node dist/server.js",
-    "prepublishOnly": "npm run build"
+    "build": "tsc && shx chmod +x dist/*.js", 
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
