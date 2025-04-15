@@ -11,13 +11,14 @@ import {
 
 // Initialize the MCP Server
 const server = new McpServer({
-  name: "MagicUI MCP",
+  name: "Magic UI MCP",
   version: "1.0.0"
 });
 
 // Register the main tool for getting all components
 server.tool(
-  "getUIComponents",
+  "getUIComponents", 
+  "Provides a comprehensive list of all Magic UI components.",
   {},
   async () => {
     try {
@@ -82,6 +83,7 @@ async function registerComponentTools() {
     
     server.tool(
       `get${formattedName}`,
+      `Provides implementation details for the ${formattedName} component.`,
       {},
       async () => {
         try {
