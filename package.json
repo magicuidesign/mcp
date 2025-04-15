@@ -1,5 +1,5 @@
 {
-  "name": "mcp",
+  "name": "@magicuidesign/mcp",
   "version": "0.1.0",
   "description": "Official MCP server for Magic UI.",
   "type": "module",
@@ -10,7 +10,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc", 
+    "start": "node dist/server.js",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
