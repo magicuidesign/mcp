@@ -4,7 +4,7 @@
   "description": "Official MCP server for Magic UI.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beaubhp/magicui-mcp.git"
+    "url": "git+https://github.com/magicuidesign/mcp.git"
   },
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
