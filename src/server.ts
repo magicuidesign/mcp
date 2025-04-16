@@ -153,6 +153,7 @@ const componentCategories = {
     "pointer",
     "avatar-circles",
     "icon-cloud",
+    "globe",
   ],
   Backgrounds: [
     "warp-background",
