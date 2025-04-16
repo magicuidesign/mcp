@@ -83,29 +83,57 @@ function buildExampleComponentMap(
 
 // Component category definitions
 const componentCategories = {
-  Components: [
-    "marquee",
-    "terminal",
-    "hero-video-dialog",
+  Layout: [
     "bento-grid",
-    "animated-list",
     "dock",
-    "globe",
-    "tweet-card",
-    "client-tweet-card",
-    "orbiting-circles",
-    "avatar-circles",
-    "icon-cloud",
-    "animated-circular-progress-bar",
     "file-tree",
-    "code-comparison",
-    "script-copy-btn",
-    "scroll-progress",
-    "lens",
-    "pointer",
+    "grid-pattern",
+    "interactive-grid-pattern",
+    "dot-pattern",
   ],
-  DeviceMocks: ["safari", "iphone-15-pro", "android"],
-  SpecialEffects: [
+  Media: [
+    "hero-video-dialog",
+    "terminal",
+    "marquee",
+    "script-copy-btn",
+    "code-comparison",
+  ],
+  Motion: [
+    "blur-fade",
+    "scroll-progress",
+    "scroll-based-velocity",
+    "orbiting-circles",
+    "animated-circular-progress-bar",
+  ],
+  TextReveal: [
+    "text-animate",
+    "line-shadow-text",
+    "aurora-text",
+    "animated-shiny-text",
+    "animated-gradient-text",
+    "text-reveal",
+    "typing-animation",
+    "box-reveal",
+    "number-ticker",
+  ],
+  TextEffects: [
+    "word-rotate",
+    "flip-text",
+    "hyper-text",
+    "morphing-text",
+    "spinning-text",
+    "sparkles-text",
+  ],
+  Buttons: [
+    "rainbow-button",
+    "shimmer-button",
+    "shiny-button",
+    "interactive-hover-button",
+    "animated-subscribe-button",
+    "pulsating-button",
+    "ripple-button",
+  ],
+  Effects: [
     "animated-beam",
     "border-beam",
     "shine-border",
@@ -117,33 +145,14 @@ const componentCategories = {
     "cool-mode",
     "scratch-to-reveal",
   ],
-  Animations: ["blur-fade"],
-  TextAnimations: [
-    "text-animate",
-    "line-shadow-text",
-    "aurora-text",
-    "number-ticker",
-    "animated-shiny-text",
-    "animated-gradient-text",
-    "text-reveal",
-    "hyper-text",
-    "word-rotate",
-    "typing-animation",
-    "scroll-based-velocity",
-    "flip-text",
-    "box-reveal",
-    "sparkles-text",
-    "morphing-text",
-    "spinning-text",
-  ],
-  Buttons: [
-    "rainbow-button",
-    "shimmer-button",
-    "shiny-button",
-    "interactive-hover-button",
-    "animated-subscribe-button",
-    "pulsating-button",
-    "ripple-button",
+  Widgets: [
+    "animated-list",
+    "tweet-card",
+    "client-tweet-card",
+    "lens",
+    "pointer",
+    "avatar-circles",
+    "icon-cloud",
   ],
   Backgrounds: [
     "warp-background",
@@ -151,9 +160,11 @@ const componentCategories = {
     "animated-grid-pattern",
     "retro-grid",
     "ripple",
-    "dot-pattern",
-    "grid-pattern",
-    "interactive-grid-pattern",
+  ],
+  Devices: [
+    "safari",
+    "iphone-15-pro",
+    "android",
   ],
 };
 
@@ -177,7 +188,18 @@ async function fetchComponentsByCategory(
         exampleNamesByComponent.get(componentName) || [];
 
       // Generate installation instructions
-      const installInstructions = `Install the component using your preferred package manager: pnpm dlx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or npm/npx: npx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or yarn: yarn dlx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or bun: bunx shadcn@latest add \"https://magicui.design/r/${componentName}.json\". After installation, you can import the component like this: import { ${formatComponentName(component.name)} } from \"@/components/ui/${componentName}\";`;
+      const installInstructions = `Install the component using the same process as \
+      shadcn/ui. Detect the package manager the user is using and use it to install the \
+      component. For example, with npm: npx shadcn@latest add \
+      \"https://magicui.design/r/${componentName}.json\" (URL must be wrapped in double \
+      quotes). After installation, you can import the component like this: import { \
+      ${formatComponentName(component.name)} } from "@/components/ui/${componentName}";`;
+      
+      const disclaimerText = `The code below is for context only. It helps you understand \
+      the component's props, types, and behavior. To actually install and use the \
+      component, refer to the install instructions above. After installing, the component \
+      will be available for import via: import { ${formatComponentName(component.name)} } \
+      from "@/components/ui/${componentName}";`;
 
       const exampleDetailsList = await Promise.all(
         relevantExampleNames.map((name) => fetchExampleDetails(name)),
@@ -196,8 +218,8 @@ async function fetchComponentsByCategory(
         name: component.name,
         type: component.type,
         description: component.description,
-        content: componentContent,
         install: installInstructions,
+        content: componentContent && disclaimerText + componentContent,
         examples: formattedExamples,
       });
 
