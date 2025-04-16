@@ -18,6 +18,7 @@ const ExampleSchema = z.object({
 // Define schema for individual component with content and examples
 export const IndividualComponentSchema = ComponentSchema.extend({
   content: z.string(),
+  install: z.string(),
   examples: z.array(ExampleSchema),
 });
 

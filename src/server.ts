@@ -9,6 +9,7 @@ import {
   fetchExampleDetails,
   fetchUIComponents,
 } from "./utils/index.js";
+import { formatComponentName } from "./utils/formatters.js";
 
 // Initialize the MCP Server
 const server = new McpServer({
@@ -174,6 +175,10 @@ async function fetchComponentsByCategory(
 
       const relevantExampleNames =
         exampleNamesByComponent.get(componentName) || [];
+
+      // Generate installation instructions
+      const installInstructions = `Install the component using your preferred package manager: pnpm dlx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or npm/npx: npx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or yarn: yarn dlx shadcn@latest add \"https://magicui.design/r/${componentName}.json\" or bun: bunx shadcn@latest add \"https://magicui.design/r/${componentName}.json\". After installation, you can import the component like this: import { ${formatComponentName(component.name)} } from \"@/components/ui/${componentName}\";`;
+
       const exampleDetailsList = await Promise.all(
         relevantExampleNames.map((name) => fetchExampleDetails(name)),
       );
@@ -192,6 +197,7 @@ async function fetchComponentsByCategory(
         type: component.type,
         description: component.description,
         content: componentContent,
+        install: installInstructions,
         examples: formattedExamples,
       });
 
