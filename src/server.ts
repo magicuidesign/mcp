@@ -188,7 +188,7 @@ async function fetchComponentsByCategory(
         exampleNamesByComponent.get(componentName) || [];
 
       // Generate installation instructions
-      const installInstructions = `Install the component using the same process as \
+      const installInstructions = `Install the component for the user using the same process as \
       shadcn/ui. Detect the package manager the user is using and use it to install the \
       component. For example, with npm: npx shadcn@latest add \
       \"https://magicui.design/r/${componentName}.json\" (URL must be wrapped in double \
