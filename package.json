@@ -1,6 +1,6 @@
 {
   "name": "@magicuidesign/mcp",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Official MCP server for Magic UI.",
   "homepage": "https://magicui.design",
   "repository": {
@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch src --ext ts,json --exec \"npm run build\""
   },
   "type": "module",
   "main": "./dist/server.js",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "nodemon": "^3.1.0",
     "shx": "^0.4.0",
     "typescript": "^5.8.3"
   },

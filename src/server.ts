@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   IndividualComponentSchema,
   fetchComponentDetails,
   fetchExampleComponents,
   fetchExampleDetails,
   fetchUIComponents,
-} from "@/utils/index";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+} from "./utils/index.js";
 
 // Initialize the MCP Server
 const server = new McpServer({

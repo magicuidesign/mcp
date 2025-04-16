@@ -3,7 +3,7 @@ import {
   ComponentSchema,
   ExampleComponentSchema,
   ExampleDetailSchema,
-} from "@/utils/schemas";
+} from "./schemas.js";
 
 // Function to fetch UI components
 export async function fetchUIComponents() {
