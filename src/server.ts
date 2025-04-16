@@ -14,7 +14,7 @@ import { formatComponentName } from "./utils/formatters.js";
 // Initialize the MCP Server
 const server = new McpServer({
   name: "Magic UI MCP",
-  version: "1.0.0",
+  version: "1.0.4",
 });
 
 // Register the main tool for getting all components
@@ -188,12 +188,13 @@ async function fetchComponentsByCategory(
         exampleNamesByComponent.get(componentName) || [];
 
       // Generate installation instructions
-      const installInstructions = `Install the component for the user using the same process as \
-      shadcn/ui. Detect the package manager the user is using and use it to install the \
-      component. For example, with npm: npx shadcn@latest add \
-      \"https://magicui.design/r/${componentName}.json\" (URL must be wrapped in double \
-      quotes). After installation, you can import the component like this: import { \
-      ${formatComponentName(component.name)} } from "@/components/ui/${componentName}";`;
+      const installInstructions = `Install the component using the same process as \
+      shadcn/ui. If you run into linter or dependency errors, make sure to install the \
+      component using these instructions. For example, with npm/npx: npx shadcn@latest add \
+      "https://magicui.design/r/${componentName}.json" (make sure the URL is wrapped in \
+      double quotes, or the command may fail). After installation, you can import the \
+      component like this: import { ${formatComponentName(component.name)} } from \
+      "@/components/ui/${componentName}";`;
       
       const disclaimerText = `The code below is for context only. It helps you understand \
       the component's props, types, and behavior. To actually install and use the \
