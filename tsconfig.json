@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "ES2022",
@@ -10,10 +11,16 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitAny": true, 
-    "module": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
+    "incremental": true,
+    "paths": {
+      "@/*": ["./src/*"],
+    },
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 } 

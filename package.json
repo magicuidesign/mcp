@@ -3,9 +3,13 @@
   "version": "0.1.4",
   "description": "Official MCP server for Magic UI.",
   "repository": {
-  "type": "git",
-  "url": "git+https://github.com/beaubhp/magicui-mcp.git"
-},
+    "type": "git",
+    "url": "git+https://github.com/beaubhp/magicui-mcp.git"
+  },
+  "scripts": {
+    "build": "tsc && shx chmod +x dist/*.js",
+    "start": "node dist/server.js"
+  },
   "type": "module",
   "main": "./dist/server.js",
   "module": "./dist/server.js",
@@ -16,10 +20,6 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "tsc && shx chmod +x dist/*.js",
-    "start": "node dist/server.js"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
     "zod": "^3.24.2"

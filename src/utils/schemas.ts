@@ -25,10 +25,12 @@ export const IndividualComponentSchema = ComponentSchema.extend({
 export const ComponentDetailSchema = z.object({
   name: z.string(),
   type: z.string(),
-  files: z.array(z.object({
-    content: z.string(),
-  })),
-}); 
+  files: z.array(
+    z.object({
+      content: z.string(),
+    }),
+  ),
+});
 
 // Define schema for example component
 export const ExampleComponentSchema = z.object({
@@ -43,7 +45,9 @@ export const ExampleDetailSchema = z.object({
   name: z.string(),
   type: z.string(),
   description: z.string(),
-  files: z.array(z.object({
-    content: z.string(),
-  })),
+  files: z.array(
+    z.object({
+      content: z.string(),
+    }),
+  ),
 });
