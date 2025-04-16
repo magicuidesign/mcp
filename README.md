@@ -15,8 +15,6 @@ npx @magicuidesign/cli@latest install <client>
 - [x] cursor
 - [x] windsurf
 - [x] claude
-- [x] witsy
-- [x] enconvo
 - [x] cline
 - [x] roo-cline
 
