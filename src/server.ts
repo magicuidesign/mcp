@@ -192,9 +192,9 @@ async function fetchComponentsByCategory(
       const installInstructions = `Install the component using the same process as \
       shadcn/ui. If you run into linter or dependency errors, make sure to install the \
       component using these instructions. For example, with npm/npx: npx shadcn@latest add \
-      "https://magicui.design/r/${componentName}.json" (make sure the URL is wrapped in \
-      double quotes, or the command may fail). After installation, you can import the \
-      component like this: import { ${formatComponentName(component.name)} } from \
+      "https://magicui.design/r/${componentName}.json" (Rules: make sure the URL is wrapped in \
+      double quotes and use shadcn not shadcn-ui, or the command will fail). After installation, \ 
+      you can import the component like this: import { ${formatComponentName(component.name)} } from \
       "@/components/ui/${componentName}";`;
       
       const disclaimerText = `The code below is for context only. It helps you understand \
