@@ -5,7 +5,7 @@
 Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design/).
 
 <div align="center">
-  <img src="https://github.com/magicuidesign/mcp/blob/main/docs/mcp.png" alt="MCP" />
+  <img src="https://github.com/magicuidesign/mcp/blob/main/public/mcp.png" alt="MCP" />
 </div>
 
 ## Install MCP configuration
