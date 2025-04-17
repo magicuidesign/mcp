@@ -31,7 +31,7 @@ Add to your IDE's MCP config:
   "mcpServers": {
     "@magicuidesign/mcp": {
       "command": "npx",
-      "args": ["-y", "@magicuidesign/mcp"]
+      "args": ["-y", "@magicuidesign/mcp@latest"]
     }
   }
 }
