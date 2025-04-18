@@ -67,12 +67,10 @@ The server provides the following tools callable via MCP:
 
 ## MCP Limitations
 
-Some clients have a [limit](https://docs.cursor.com/context/model-context-protocol#limitations) on the number of tools they can call. This is why we opted to group the tools into categories.
+Some clients have a [limit](https://docs.cursor.com/context/model-context-protocol#limitations) on the number of tools they can call. This is why we opted to group the tools into categories. Note: For more specific context on each component, run the MCP locally and modify the logic that groups the components.
 
 ## Credits
 
 Big thanks to [@beaubhp](https://github.com/beaubhp) for creating the MCP server 🙏
 
-## License
-
-Licensed under the [MIT license](https://github.com/magicuidesign/mcp/blob/main/LICENSE.md).
+[MIT](https://github.com/magicuidesign/mcp/blob/main/LICENSE.md)
