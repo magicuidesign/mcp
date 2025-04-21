@@ -4,6 +4,10 @@
 
 Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design/).
 
+<a href="https://glama.ai/mcp/servers/@magicuidesign/mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@magicuidesign/mcp/badge" alt="Magic UI Server MCP server" />
+</a>
+
 <div align="center">
   <img src="https://github.com/magicuidesign/mcp/blob/main/public/mcp.png" alt="MCP" />
 </div>
