@@ -1,6 +1,7 @@
 # @magicuidesign/mcp
 
 [![npm version](https://badge.fury.io/js/@magicuidesign%2Fmcp.svg?icon=si%3Anpm)](https://badge.fury.io/js/@magicuidesign%2Fmcp)
+[![smithery badge](https://smithery.ai/badge/@magicuidesign/mcp)](https://smithery.ai/server/@magicuidesign/mcp)
 
 Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design/).
 
@@ -9,6 +10,16 @@ Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design
 </div>
 
 ## Install MCP configuration
+
+### Installing via Smithery
+
+To install Magic UI Component Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@magicuidesign/mcp):
+
+```bash
+npx -y @smithery/cli install @magicuidesign/mcp --client claude
+```
+
+### Installing Manually
 
 ```bash
 npx @magicuidesign/cli@latest install <client>
