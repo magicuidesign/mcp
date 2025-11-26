@@ -29,7 +29,7 @@ Add to your IDE's MCP config:
 ```json
 {
   "mcpServers": {
-    "@magicuidesign/mcp": {
+    "magicuidesign-mcp": {
       "command": "npx",
       "args": ["-y", "@magicuidesign/mcp@latest"]
     }
