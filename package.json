@@ -23,8 +23,8 @@
     "dist"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.9.0",
-    "zod": "^3.24.2"
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
