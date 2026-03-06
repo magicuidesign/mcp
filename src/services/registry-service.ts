@@ -18,21 +18,45 @@ import { IndividualComponentSchema } from "../registry/schemas.js";
 import { formatComponentName } from "../utils/formatters.js";
 
 export class RegistryService {
+  private snapshot?: RegistrySnapshot;
+  private snapshotPromise?: Promise<RegistrySnapshot>;
+
   async listUIComponents(): Promise<RegistryComponent[]> {
     return fetchUIComponents();
   }
 
   async createSnapshot(): Promise<RegistrySnapshot> {
-    const [components, examples] = await Promise.all([
-      fetchUIComponents(),
-      fetchExampleComponents(),
-    ]);
+    if (this.snapshot) {
+      return this.snapshot;
+    }
 
-    return {
-      components,
-      examples,
-      exampleNamesByComponent: this.buildExampleComponentMap(examples),
-    };
+    if (this.snapshotPromise) {
+      return this.snapshotPromise;
+    }
+
+    this.snapshotPromise = this.loadSnapshot();
+
+    return this.snapshotPromise;
+  }
+
+  private async loadSnapshot(): Promise<RegistrySnapshot> {
+    try {
+      const [components, examples] = await Promise.all([
+        fetchUIComponents(),
+        fetchExampleComponents(),
+      ]);
+
+      const snapshot = {
+        components,
+        examples,
+        exampleNamesByComponent: this.buildExampleComponentMap(examples),
+      };
+
+      this.snapshot = snapshot;
+      return snapshot;
+    } finally {
+      this.snapshotPromise = undefined;
+    }
   }
 
   async getCategoryComponents(
