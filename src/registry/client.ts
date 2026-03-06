@@ -10,6 +10,7 @@ import {
   ComponentSchema,
   ExampleComponentSchema,
   ExampleDetailSchema,
+  RegistryEntrySchema,
   RegistryResponseSchema,
 } from "./schemas.js";
 
@@ -37,10 +38,18 @@ export async function fetchRegistry() {
   return fetchJson(REGISTRY_URL, RegistryResponseSchema, "registry.json");
 }
 
+function parseRegistryEntries(items: unknown[]) {
+  return items.flatMap((item) => {
+    const parsedEntry = RegistryEntrySchema.safeParse(item);
+    return parsedEntry.success ? [parsedEntry.data] : [];
+  });
+}
+
 export async function fetchUIComponents(): Promise<RegistryComponent[]> {
   const registry = await fetchRegistry();
+  const entries = parseRegistryEntries(registry.items);
 
-  return registry.items.flatMap((item) => {
+  return entries.flatMap((item) => {
     if (item.type !== "registry:ui") {
       return [];
     }
@@ -67,8 +76,9 @@ export async function fetchComponentDetails(
 
 export async function fetchExampleComponents(): Promise<RegistryExample[]> {
   const registry = await fetchRegistry();
+  const entries = parseRegistryEntries(registry.items);
 
-  return registry.items.flatMap((item) => {
+  return entries.flatMap((item) => {
     if (item.type !== "registry:example") {
       return [];
     }

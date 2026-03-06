@@ -51,9 +51,7 @@ server.tool(
   },
 );
 
-async function registerCategoryTools() {
-  const snapshot = await registryService.createSnapshot();
-
+function registerCategoryTools() {
   for (const category of getComponentCategoryNames()) {
     const categoryComponents = componentCategories[category];
     const componentNamesString = categoryComponents.join(", ");
@@ -66,7 +64,6 @@ async function registerCategoryTools() {
         try {
           const categoryResults = await registryService.getCategoryComponents(
             category,
-            snapshot,
           );
 
           return createTextResponse(categoryResults);
@@ -81,13 +78,7 @@ async function registerCategoryTools() {
   }
 }
 
-registerCategoryTools()
-  .then(() => {
-    const transport = new StdioServerTransport();
-    server.connect(transport);
-  })
-  .catch((error) => {
-    console.error("Error registering category tools:", error);
-    const transport = new StdioServerTransport();
-    server.connect(transport);
-  });
+registerCategoryTools();
+
+const transport = new StdioServerTransport();
+server.connect(transport);

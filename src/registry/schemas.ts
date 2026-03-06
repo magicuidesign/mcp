@@ -8,7 +8,7 @@ export const RegistryEntrySchema = z.object({
 });
 
 export const RegistryResponseSchema = z.object({
-  items: z.array(RegistryEntrySchema),
+  items: z.array(z.unknown()),
 });
 
 export const ComponentSchema = z.object({
