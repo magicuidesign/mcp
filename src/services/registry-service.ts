@@ -174,22 +174,34 @@ export class RegistryService {
     }
 
     if (options?.includeSource) {
-      const itemDetails = await this.fetchRegistryItemDetails(name);
-      const source = this.buildRegistryItemSource(item, itemDetails);
+      try {
+        const itemDetails = await this.fetchRegistryItemDetails(name);
+        const source = this.buildRegistryItemSource(item, itemDetails);
 
-      if (source) {
-        detail.source = source;
+        if (source) {
+          detail.source = source;
+        }
+      } catch (error) {
+        console.error(`Error fetching source for registry item ${name}:`, error);
       }
     }
 
     if (options?.includeExamples && item.kind === "component") {
       const relatedExampleNames = snapshot.exampleNamesByComponent.get(name) ?? [];
-      const exampleDetailsList = await Promise.all(
+      const exampleDetailsResults = await Promise.allSettled(
         relatedExampleNames.map((exampleName) => fetchExampleDetails(exampleName)),
       );
 
-      detail.examples = exampleDetailsList.flatMap((exampleDetails) => {
-        const content = this.buildFilesSource(exampleDetails.files);
+      detail.examples = exampleDetailsResults.flatMap((result, index) => {
+        if (result.status === "rejected") {
+          console.error(
+            `Error fetching example ${relatedExampleNames[index]} for registry item ${name}:`,
+            result.reason,
+          );
+          return [];
+        }
+
+        const content = this.buildFilesSource(result.value.files);
 
         if (!content) {
           return [];
@@ -197,9 +209,9 @@ export class RegistryService {
 
         return [
           {
-            name: exampleDetails.name,
-            title: formatDisplayName(exampleDetails.name),
-            description: exampleDetails.description,
+            name: result.value.name,
+            title: formatDisplayName(result.value.name),
+            description: result.value.description,
             content,
           },
         ];
