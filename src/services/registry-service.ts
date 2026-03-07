@@ -25,7 +25,7 @@ import { IndividualComponentSchema } from "../registry/schemas.js";
 import { formatComponentName, formatDisplayName } from "../utils/formatters.js";
 
 const DEFAULT_RESULT_LIMIT = 25;
-const MAX_RESULT_LIMIT = 100;
+const MAX_RESULT_LIMIT = 150;
 
 export class RegistryService {
   private snapshot?: RegistrySnapshot;

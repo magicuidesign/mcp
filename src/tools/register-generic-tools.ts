@@ -20,7 +20,7 @@ const listRegistryItemsSchema = {
     .number()
     .int()
     .min(1)
-    .max(100)
+    .max(150)
     .optional()
     .describe("Maximum number of items to return. Defaults to 25."),
 };
@@ -56,7 +56,7 @@ const searchRegistryItemsSchema = {
     .number()
     .int()
     .min(1)
-    .max(100)
+    .max(150)
     .optional()
     .describe("Maximum number of results to return. Defaults to 25."),
 };
