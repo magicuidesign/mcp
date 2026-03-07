@@ -1,3 +1,4 @@
+/** @deprecated Compatibility-only category buckets. Generic registry tools are the primary API. */
 export const componentCategories = {
   Layout: [
     "bento-grid",

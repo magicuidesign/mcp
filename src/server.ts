@@ -17,7 +17,7 @@ const server = new McpServer({
 
 server.tool(
   "getUIComponents",
-  "Provides a comprehensive list of all Magic UI components.",
+  "Deprecated: use listRegistryItems with kind=component instead. Provides a comprehensive list of all Magic UI components.",
   {},
   async () => {
     try {
@@ -38,7 +38,7 @@ function registerCategoryTools() {
 
     server.tool(
       `get${category}`,
-      `Provides implementation details for ${componentNamesString} components.`,
+      `Deprecated: use searchRegistryItems/getRegistryItem instead. Provides implementation details for ${componentNamesString} components.`,
       {},
       async () => {
         try {
