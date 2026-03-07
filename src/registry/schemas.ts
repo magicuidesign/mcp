@@ -21,6 +21,7 @@ export const ComponentSchema = z.object({
 
 const ExampleSchema = z.object({
   name: z.string(),
+  title: z.string().optional(),
   type: z.string(),
   description: z.string(),
   content: z.string(),
@@ -48,6 +49,7 @@ export const RegistryItemDetailSchema = ComponentDetailSchema;
 
 export const ExampleComponentSchema = z.object({
   name: z.string(),
+  title: z.string().optional(),
   type: z.string(),
   description: z.string(),
   registryDependencies: z.array(z.string()).optional().default([]),
@@ -55,6 +57,7 @@ export const ExampleComponentSchema = z.object({
 
 export const ExampleDetailSchema = z.object({
   name: z.string(),
+  title: z.string().optional(),
   type: z.string(),
   description: z.string(),
   files: z.array(

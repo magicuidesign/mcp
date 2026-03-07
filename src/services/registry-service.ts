@@ -210,7 +210,7 @@ export class RegistryService {
         return [
           {
             name: result.value.name,
-            title: formatDisplayName(result.value.name),
+            title: result.value.title ?? formatDisplayName(result.value.name),
             description: result.value.description,
             content,
           },
