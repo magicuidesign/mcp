@@ -87,6 +87,22 @@ export const componentCategories = {
 
 export type ComponentCategoryName = keyof typeof componentCategories;
 
+const categoriesByComponentName = new Map<string, ComponentCategoryName[]>();
+
+for (const [category, componentNames] of Object.entries(componentCategories)) {
+  for (const componentName of componentNames) {
+    const existingCategories = categoriesByComponentName.get(componentName) ?? [];
+    existingCategories.push(category as ComponentCategoryName);
+    categoriesByComponentName.set(componentName, existingCategories);
+  }
+}
+
 export function getComponentCategoryNames(): ComponentCategoryName[] {
   return Object.keys(componentCategories) as ComponentCategoryName[];
+}
+
+export function getCategoriesForComponent(
+  componentName: string,
+): ComponentCategoryName[] {
+  return categoriesByComponentName.get(componentName) ?? [];
 }

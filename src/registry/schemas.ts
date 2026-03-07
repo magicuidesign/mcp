@@ -2,8 +2,10 @@ import { z } from "zod";
 
 export const RegistryEntrySchema = z.object({
   name: z.string(),
+  title: z.string().optional(),
   type: z.string(),
   description: z.string().optional(),
+  dependencies: z.array(z.string()).optional(),
   registryDependencies: z.array(z.string()).optional(),
 });
 
@@ -39,6 +41,8 @@ export const ComponentDetailSchema = z.object({
     }),
   ),
 });
+
+export const RegistryItemDetailSchema = ComponentDetailSchema;
 
 export const ExampleComponentSchema = z.object({
   name: z.string(),

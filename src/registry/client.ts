@@ -1,9 +1,11 @@
 import type { ZodType } from "zod";
 import type {
+  RegistryEntry,
   RegistryComponent,
   RegistryComponentDetail,
   RegistryExample,
   RegistryExampleDetail,
+  RegistryItemDetail,
 } from "../domain/registry.js";
 import {
   ComponentDetailSchema,
@@ -11,6 +13,7 @@ import {
   ExampleComponentSchema,
   ExampleDetailSchema,
   RegistryEntrySchema,
+  RegistryItemDetailSchema,
   RegistryResponseSchema,
 } from "./schemas.js";
 
@@ -45,10 +48,12 @@ function parseRegistryEntries(items: unknown[]) {
   });
 }
 
-export async function fetchUIComponents(): Promise<RegistryComponent[]> {
+export async function fetchRegistryEntries(): Promise<RegistryEntry[]> {
   const registry = await fetchRegistry();
-  const entries = parseRegistryEntries(registry.items);
+  return parseRegistryEntries(registry.items);
+}
 
+export function parseUIComponents(entries: RegistryEntry[]): RegistryComponent[] {
   return entries.flatMap((item) => {
     if (item.type !== "registry:ui") {
       return [];
@@ -64,6 +69,20 @@ export async function fetchUIComponents(): Promise<RegistryComponent[]> {
   });
 }
 
+export async function fetchUIComponents(): Promise<RegistryComponent[]> {
+  return parseUIComponents(await fetchRegistryEntries());
+}
+
+export async function fetchRegistryItemDetails(
+  name: string,
+): Promise<RegistryItemDetail> {
+  return fetchJson(
+    `${REGISTRY_ITEM_URL}/${name}`,
+    RegistryItemDetailSchema,
+    `registry item ${name}`,
+  );
+}
+
 export async function fetchComponentDetails(
   name: string,
 ): Promise<RegistryComponentDetail> {
@@ -74,10 +93,7 @@ export async function fetchComponentDetails(
   );
 }
 
-export async function fetchExampleComponents(): Promise<RegistryExample[]> {
-  const registry = await fetchRegistry();
-  const entries = parseRegistryEntries(registry.items);
-
+export function parseExampleComponents(entries: RegistryEntry[]): RegistryExample[] {
   return entries.flatMap((item) => {
     if (item.type !== "registry:example") {
       return [];
@@ -92,6 +108,10 @@ export async function fetchExampleComponents(): Promise<RegistryExample[]> {
 
     return parsedExample.success ? [parsedExample.data] : [];
   });
+}
+
+export async function fetchExampleComponents(): Promise<RegistryExample[]> {
+  return parseExampleComponents(await fetchRegistryEntries());
 }
 
 export async function fetchExampleDetails(

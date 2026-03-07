@@ -7,35 +7,13 @@ import {
   getComponentCategoryNames,
 } from "./registry/categories.js";
 import { registryService } from "./services/registry-service.js";
+import { registerGenericTools } from "./tools/register-generic-tools.js";
+import { createErrorResponse, createTextResponse } from "./tools/responses.js";
 
 const server = new McpServer({
   name: "Magic UI MCP",
   version: "1.0.4",
 });
-
-function createTextResponse(payload: unknown) {
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: JSON.stringify(payload, null, 2),
-      },
-    ],
-  };
-}
-
-function createErrorResponse(message: string, error?: unknown) {
-  let errorMessage = message;
-
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
-  }
-
-  return {
-    content: [{ type: "text" as const, text: errorMessage }],
-    isError: true,
-  };
-}
 
 server.tool(
   "getUIComponents",
@@ -50,6 +28,8 @@ server.tool(
     }
   },
 );
+
+registerGenericTools(server);
 
 function registerCategoryTools() {
   for (const category of getComponentCategoryNames()) {
