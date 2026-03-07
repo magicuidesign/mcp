@@ -189,7 +189,7 @@ export class RegistryService {
       );
 
       detail.examples = exampleDetailsList.flatMap((exampleDetails) => {
-        const content = exampleDetails.files[0]?.content;
+        const content = this.buildFilesSource(exampleDetails.files);
 
         if (!content) {
           return [];
@@ -255,7 +255,7 @@ export class RegistryService {
 
       try {
         const componentDetails = await fetchComponentDetails(componentName);
-        const componentContent = componentDetails.files[0]?.content;
+        const componentContent = this.buildFilesSource(componentDetails.files);
 
         if (!componentContent) {
           throw new Error(`Component ${componentName} is missing source content`);
@@ -269,7 +269,7 @@ export class RegistryService {
         );
 
         const formattedExamples = exampleDetailsList.flatMap((details) => {
-          const exampleContent = details.files[0]?.content;
+          const exampleContent = this.buildFilesSource(details.files);
 
           if (!exampleContent) {
             return [];
@@ -510,7 +510,26 @@ export class RegistryService {
     item: RegistryCatalogItem,
     itemDetails: RegistryItemDetail,
   ): string | undefined {
-    const source = itemDetails.files
+    const source = this.buildFilesSource(itemDetails.files);
+
+    if (!source) {
+      return undefined;
+    }
+
+    if (item.kind === "component") {
+      return this.buildComponentContext(item.name, source);
+    }
+
+    return source;
+  }
+
+  private buildFilesSource(
+    files: Array<{
+      content: string;
+      path?: string;
+    }>,
+  ): string | undefined {
+    const source = files
       .map((file) => {
         const trimmedContent = file.content.trim();
 
@@ -527,15 +546,7 @@ export class RegistryService {
       .filter((value): value is string => Boolean(value))
       .join("\n\n");
 
-    if (!source) {
-      return undefined;
-    }
-
-    if (item.kind === "component") {
-      return this.buildComponentContext(item.name, source);
-    }
-
-    return source;
+    return source || undefined;
   }
 
   private buildInstallInstructions(componentName: string): string {
