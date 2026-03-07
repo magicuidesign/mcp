@@ -476,14 +476,31 @@ export class RegistryService {
   }
 
   private parseRegistryDependencyName(dependency: string): string | undefined {
-    if (dependency.startsWith("@magicui/")) {
-      return dependency.slice("@magicui/".length) || undefined;
+    const normalizedDependency = dependency.trim();
+
+    if (!normalizedDependency) {
+      return undefined;
     }
 
-    const componentNameMatch = dependency.match(
+    if (normalizedDependency.startsWith("@magicui/")) {
+      return normalizedDependency.slice("@magicui/".length) || undefined;
+    }
+
+    const componentNameMatch = normalizedDependency.match(
       /(?:^|\/)r\/([^/.]+)(?:\.json)?$/,
     );
-    return componentNameMatch?.[1];
+    if (componentNameMatch?.[1]) {
+      return componentNameMatch[1];
+    }
+
+    if (
+      !normalizedDependency.includes("/") &&
+      !normalizedDependency.includes(":")
+    ) {
+      return normalizedDependency.replace(/\.json$/, "") || undefined;
+    }
+
+    return undefined;
   }
 
   private async fetchRegistryItemDetails(
