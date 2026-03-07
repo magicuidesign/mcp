@@ -38,6 +38,8 @@ export const ComponentDetailSchema = z.object({
   files: z.array(
     z.object({
       content: z.string(),
+      path: z.string().optional(),
+      type: z.string().optional(),
     }),
   ),
 });
@@ -58,6 +60,8 @@ export const ExampleDetailSchema = z.object({
   files: z.array(
     z.object({
       content: z.string(),
+      path: z.string().optional(),
+      type: z.string().optional(),
     }),
   ),
 });

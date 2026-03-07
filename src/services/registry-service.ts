@@ -175,13 +175,10 @@ export class RegistryService {
 
     if (options?.includeSource) {
       const itemDetails = await this.fetchRegistryItemDetails(name);
-      const source = itemDetails.files[0]?.content;
+      const source = this.buildRegistryItemSource(item, itemDetails);
 
       if (source) {
-        detail.source =
-          item.kind === "component"
-            ? this.buildComponentContext(item.name, source)
-            : source;
+        detail.source = source;
       }
     }
 
@@ -507,6 +504,38 @@ export class RegistryService {
     name: string,
   ): Promise<RegistryItemDetail> {
     return fetchRegistryItemDetails(name);
+  }
+
+  private buildRegistryItemSource(
+    item: RegistryCatalogItem,
+    itemDetails: RegistryItemDetail,
+  ): string | undefined {
+    const source = itemDetails.files
+      .map((file) => {
+        const trimmedContent = file.content.trim();
+
+        if (!trimmedContent) {
+          return undefined;
+        }
+
+        if (!file.path) {
+          return trimmedContent;
+        }
+
+        return `// File: ${file.path}\n${trimmedContent}`;
+      })
+      .filter((value): value is string => Boolean(value))
+      .join("\n\n");
+
+    if (!source) {
+      return undefined;
+    }
+
+    if (item.kind === "component") {
+      return this.buildComponentContext(item.name, source);
+    }
+
+    return source;
   }
 
   private buildInstallInstructions(componentName: string): string {
