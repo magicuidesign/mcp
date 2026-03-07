@@ -218,13 +218,9 @@ export class RegistryService {
     const exampleMap = new Map<string, string[]>();
 
     for (const example of examples) {
-      for (const dependencyUrl of example.registryDependencies) {
-        if (!dependencyUrl.includes("magicui.design")) {
-          continue;
-        }
-
-        const componentNameMatch = dependencyUrl.match(/\/r\/([^/]+)$/);
-        const componentName = componentNameMatch?.[1];
+      for (const registryDependency of example.registryDependencies) {
+        const componentName =
+          this.parseRegistryDependencyName(registryDependency);
 
         if (!componentName) {
           continue;
@@ -473,11 +469,21 @@ export class RegistryService {
     registryDependencies: string[],
   ): string[] {
     return registryDependencies.flatMap((dependency) => {
-      const componentNameMatch = dependency.match(/\/r\/([^/]+)$/);
-      const dependencyName = componentNameMatch?.[1] ?? dependency;
+      const dependencyName = this.parseRegistryDependencyName(dependency);
 
       return dependencyName ? [dependencyName] : [];
     });
+  }
+
+  private parseRegistryDependencyName(dependency: string): string | undefined {
+    if (dependency.startsWith("@magicui/")) {
+      return dependency.slice("@magicui/".length) || undefined;
+    }
+
+    const componentNameMatch = dependency.match(
+      /(?:^|\/)r\/([^/.]+)(?:\.json)?$/,
+    );
+    return componentNameMatch?.[1];
   }
 
   private async fetchRegistryItemDetails(
