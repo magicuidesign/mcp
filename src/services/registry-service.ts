@@ -57,20 +57,29 @@ export class RegistryService {
     kind?: string;
     query?: string;
     limit?: number;
+    offset?: number;
   }): Promise<{
     total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
     availableKinds: string[];
     items: RegistryCatalogItem[];
   }> {
     const snapshot = await this.createSnapshot();
     const catalog = this.buildCatalog(snapshot);
     const filteredCatalog = this.filterCatalog(catalog, options);
-    const items = filteredCatalog.slice(0, this.normalizeLimit(options?.limit));
+    const page = this.paginateItems(filteredCatalog, options);
 
     return {
       total: filteredCatalog.length,
+      limit: page.limit,
+      offset: page.offset,
+      hasMore: page.hasMore,
+      nextOffset: page.nextOffset,
       availableKinds: this.getAvailableKinds(catalog),
-      items,
+      items: page.items,
     };
   }
 
@@ -78,9 +87,14 @@ export class RegistryService {
     query: string;
     kind?: string;
     limit?: number;
+    offset?: number;
   }): Promise<{
     query: string;
     total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
     availableKinds: string[];
     items: RegistryCatalogItem[];
   }> {
@@ -105,13 +119,17 @@ export class RegistryService {
         return left.item.name.localeCompare(right.item.name);
       })
       .map((entry) => entry.item);
-    const items = rankedItems.slice(0, this.normalizeLimit(options.limit));
+    const page = this.paginateItems(rankedItems, options);
 
     return {
       query,
       total: rankedItems.length,
+      limit: page.limit,
+      offset: page.offset,
+      hasMore: page.hasMore,
+      nextOffset: page.nextOffset,
       availableKinds: this.getAvailableKinds(catalog),
-      items,
+      items: page.items,
     };
   }
 
@@ -346,6 +364,42 @@ export class RegistryService {
     }
 
     return Math.min(Math.max(Math.trunc(limit), 1), MAX_RESULT_LIMIT);
+  }
+
+  private normalizeOffset(offset?: number): number {
+    if (offset === undefined || Number.isNaN(offset)) {
+      return 0;
+    }
+
+    return Math.max(Math.trunc(offset), 0);
+  }
+
+  private paginateItems<T>(
+    items: T[],
+    options?: {
+      limit?: number;
+      offset?: number;
+    },
+  ): {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
+    items: T[];
+  } {
+    const limit = this.normalizeLimit(options?.limit);
+    const offset = this.normalizeOffset(options?.offset);
+    const paginatedItems = items.slice(offset, offset + limit);
+    const nextOffset = offset + paginatedItems.length;
+    const hasMore = nextOffset < items.length;
+
+    return {
+      limit,
+      offset,
+      hasMore,
+      nextOffset: hasMore ? nextOffset : undefined,
+      items: paginatedItems,
+    };
   }
 
   private getEntryDependencies(entries: RegistryEntry[], name: string): string[] {

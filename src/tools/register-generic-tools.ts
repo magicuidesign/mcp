@@ -23,6 +23,12 @@ const listRegistryItemsSchema = {
     .max(150)
     .optional()
     .describe("Maximum number of items to return. Defaults to 25."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Pagination offset for exhaustive registry browsing. Defaults to 0."),
 };
 
 const getRegistryItemSchema = {
@@ -59,6 +65,12 @@ const searchRegistryItemsSchema = {
     .max(150)
     .optional()
     .describe("Maximum number of results to return. Defaults to 25."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Pagination offset for stepping through ranked search results. Defaults to 0."),
 };
 
 export function registerGenericTools(server: McpServer) {
