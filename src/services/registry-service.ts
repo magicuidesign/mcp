@@ -292,6 +292,7 @@ export class RegistryService {
     const normalizedQuery = query.toLowerCase();
     const searchTerms = this.buildSearchTerms(item);
     const queryTerms = this.tokenizeSearchWords(query);
+    const queryVariants = [...new Set([normalizedQuery, ...queryTerms])];
 
     if (!normalizedQuery) {
       return 0;
@@ -299,38 +300,29 @@ export class RegistryService {
 
     let score = 0;
 
-    if (item.name === normalizedQuery) {
-      score += 120;
-    } else if (item.name.includes(normalizedQuery)) {
-      score += 90;
-    }
-
-    if (item.title.toLowerCase() === normalizedQuery) {
-      score += 100;
-    } else if (item.title.toLowerCase().includes(normalizedQuery)) {
-      score += 70;
-    }
-
-    if (item.description?.toLowerCase().includes(normalizedQuery)) {
-      score += 35;
-    }
-
-    if (item.kind.toLowerCase() === normalizedQuery) {
-      score += 25;
-    }
-
-    if (item.registryType.toLowerCase() === normalizedQuery) {
-      score += 25;
-    }
-
-    if (searchTerms.some((term) => term === normalizedQuery)) {
-      score += 40;
-    } else if (searchTerms.some((term) => term.includes(normalizedQuery))) {
-      score += 20;
-    }
+    score += this.getVariantMatchScore(item.name, queryVariants, 120, 90);
+    score += this.getVariantMatchScore(
+      item.title.toLowerCase(),
+      queryVariants,
+      100,
+      70,
+    );
+    score += this.getVariantContainsScore(
+      item.description?.toLowerCase(),
+      queryVariants,
+      35,
+    );
+    score += this.getVariantMatchScore(item.kind.toLowerCase(), queryVariants, 25, 15);
+    score += this.getVariantMatchScore(
+      item.registryType.toLowerCase(),
+      queryVariants,
+      25,
+      15,
+    );
+    score += this.getSearchTermScore(searchTerms, queryVariants, 40, 20);
 
     if (
-      queryTerms.length > 1 &&
+      queryTerms.length > 0 &&
       queryTerms.every((queryTerm) =>
         searchTerms.some((term) => term.includes(queryTerm)),
       )
@@ -339,6 +331,75 @@ export class RegistryService {
     }
 
     return score;
+  }
+
+  private getVariantMatchScore(
+    value: string,
+    variants: string[],
+    exactScore: number,
+    containsScore: number,
+  ): number {
+    let bestScore = 0;
+
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (value === variant) {
+        bestScore = Math.max(bestScore, exactScore);
+        continue;
+      }
+
+      if (value.includes(variant)) {
+        bestScore = Math.max(bestScore, containsScore);
+      }
+    }
+
+    return bestScore;
+  }
+
+  private getVariantContainsScore(
+    value: string | undefined,
+    variants: string[],
+    containsScore: number,
+  ): number {
+    if (!value) {
+      return 0;
+    }
+
+    return variants.some((variant) => variant && value.includes(variant))
+      ? containsScore
+      : 0;
+  }
+
+  private getSearchTermScore(
+    searchTerms: string[],
+    variants: string[],
+    exactScore: number,
+    containsScore: number,
+  ): number {
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (searchTerms.some((term) => term === variant)) {
+        return exactScore;
+      }
+    }
+
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (searchTerms.some((term) => term.includes(variant))) {
+        return containsScore;
+      }
+    }
+
+    return 0;
   }
 
   private getAvailableKinds(catalog: RegistryCatalogItem[]): string[] {
