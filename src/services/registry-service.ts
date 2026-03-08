@@ -2,26 +2,16 @@ import type {
   RegistryCatalogItem,
   RegistryCatalogItemDetail,
   RegistryEntry,
-  RegistryComponent,
-  RegistryEnrichedComponent,
   RegistryExample,
   RegistryItemDetail,
   RegistrySnapshot,
 } from "../domain/registry.js";
 import {
-  type ComponentCategoryName,
-  componentCategories,
-  getCategoriesForComponent,
-} from "../registry/categories.js";
-import {
-  fetchComponentDetails,
   fetchExampleDetails,
   fetchRegistryEntries,
   fetchRegistryItemDetails,
   parseExampleComponents,
-  parseUIComponents,
 } from "../registry/client.js";
-import { IndividualComponentSchema } from "../registry/schemas.js";
 import { formatComponentName, formatDisplayName } from "../utils/formatters.js";
 
 const DEFAULT_RESULT_LIMIT = 25;
@@ -30,10 +20,6 @@ const MAX_RESULT_LIMIT = 150;
 export class RegistryService {
   private snapshot?: RegistrySnapshot;
   private snapshotPromise?: Promise<RegistrySnapshot>;
-
-  async listUIComponents(): Promise<RegistryComponent[]> {
-    return parseUIComponents(await fetchRegistryEntries());
-  }
 
   async createSnapshot(): Promise<RegistrySnapshot> {
     if (this.snapshot) {
@@ -52,12 +38,10 @@ export class RegistryService {
   private async loadSnapshot(): Promise<RegistrySnapshot> {
     try {
       const entries = await fetchRegistryEntries();
-      const components = parseUIComponents(entries);
       const examples = parseExampleComponents(entries);
 
       const snapshot = {
         entries,
-        components,
         examples,
         exampleNamesByComponent: this.buildExampleComponentMap(examples),
       };
@@ -67,18 +51,6 @@ export class RegistryService {
     } finally {
       this.snapshotPromise = undefined;
     }
-  }
-
-  async getCategoryComponents(
-    category: ComponentCategoryName,
-    snapshot?: RegistrySnapshot,
-  ): Promise<RegistryEnrichedComponent[]> {
-    const activeSnapshot = snapshot ?? (await this.createSnapshot());
-
-    return this.fetchComponentsByNames(
-      componentCategories[category],
-      activeSnapshot,
-    );
   }
 
   async listRegistryItems(options?: {
@@ -249,72 +221,6 @@ export class RegistryService {
     return exampleMap;
   }
 
-  private async fetchComponentsByNames(
-    componentNames: readonly string[],
-    snapshot: RegistrySnapshot,
-  ): Promise<RegistryEnrichedComponent[]> {
-    const componentResults: RegistryEnrichedComponent[] = [];
-    const componentsByName = new Map(
-      snapshot.components.map((component) => [component.name, component]),
-    );
-
-    for (const componentName of componentNames) {
-      const component = componentsByName.get(componentName);
-
-      if (!component) {
-        continue;
-      }
-
-      try {
-        const componentDetails = await fetchComponentDetails(componentName);
-        const componentContent = this.buildFilesSource(componentDetails.files);
-
-        if (!componentContent) {
-          throw new Error(`Component ${componentName} is missing source content`);
-        }
-
-        const relevantExampleNames =
-          snapshot.exampleNamesByComponent.get(componentName) ?? [];
-
-        const exampleDetailsList = await Promise.all(
-          relevantExampleNames.map((name) => fetchExampleDetails(name)),
-        );
-
-        const formattedExamples = exampleDetailsList.flatMap((details) => {
-          const exampleContent = this.buildFilesSource(details.files);
-
-          if (!exampleContent) {
-            return [];
-          }
-
-          return [
-            {
-              name: details.name,
-              type: details.type,
-              description: details.description,
-              content: exampleContent,
-            },
-          ];
-        });
-
-        const validatedComponent = IndividualComponentSchema.parse({
-          name: component.name,
-          type: component.type,
-          description: component.description,
-          install: this.buildInstallInstructions(component.name),
-          content: this.buildComponentContext(component.name, componentContent),
-          examples: formattedExamples,
-        });
-
-        componentResults.push(validatedComponent);
-      } catch (error) {
-        console.error(`Error processing component ${componentName}:`, error);
-      }
-    }
-
-    return componentResults;
-  }
-
   private buildCatalog(snapshot: RegistrySnapshot): RegistryCatalogItem[] {
     return snapshot.entries.map((entry) => ({
       name: entry.name,
@@ -322,8 +228,6 @@ export class RegistryService {
       description: entry.description,
       kind: this.normalizeKind(entry.type),
       registryType: entry.type,
-      categories:
-        entry.type === "registry:ui" ? getCategoriesForComponent(entry.name) : [],
     }));
   }
 
@@ -359,7 +263,6 @@ export class RegistryService {
           item.description ?? "",
           item.kind,
           item.registryType,
-          ...item.categories,
         ];
 
         return searchableFields.some((value) =>
@@ -400,20 +303,6 @@ export class RegistryService {
 
     if (item.registryType.toLowerCase() === normalizedQuery) {
       score += 25;
-    }
-
-    if (
-      item.categories.some(
-        (category) => category.toLowerCase() === normalizedQuery,
-      )
-    ) {
-      score += 40;
-    } else if (
-      item.categories.some((category) =>
-        category.toLowerCase().includes(normalizedQuery),
-      )
-    ) {
-      score += 20;
     }
 
     return score;
@@ -559,10 +448,6 @@ export class RegistryService {
       .join("\n\n");
 
     return source || undefined;
-  }
-
-  private buildInstallInstructions(componentName: string): string {
-    return `Install the component using the same process as shadcn/ui. If you run into linter or dependency errors, make sure to install the component using these instructions. For example, with npm/npx: npx shadcn@latest add "https://magicui.design/r/${componentName}.json" (Rules: make sure the URL is wrapped in double quotes and use shadcn not shadcn-ui, or the command will fail). After installation, you can import the component like this: import { ${formatComponentName(componentName)} } from "@/components/ui/${componentName}";`;
   }
 
   private buildRegistryInstallCommand(name: string): string {

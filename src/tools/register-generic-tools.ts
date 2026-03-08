@@ -14,7 +14,7 @@ const listRegistryItemsSchema = {
     .string()
     .optional()
     .describe(
-      "Optional text filter applied to names, titles, descriptions, and categories.",
+      "Optional text filter applied to names, titles, descriptions, and registry types.",
     ),
   limit: z
     .number()
@@ -46,7 +46,7 @@ const searchRegistryItemsSchema = {
     .string()
     .min(1)
     .describe(
-      "Search query matched against names, titles, descriptions, and categories.",
+      "Search query matched against names, titles, descriptions, and registry types.",
     ),
   kind: z
     .string()

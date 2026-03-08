@@ -1,15 +1,11 @@
 import type { ZodType } from "zod";
 import type {
   RegistryEntry,
-  RegistryComponent,
-  RegistryComponentDetail,
   RegistryExample,
   RegistryExampleDetail,
   RegistryItemDetail,
 } from "../domain/registry.js";
 import {
-  ComponentDetailSchema,
-  ComponentSchema,
   ExampleComponentSchema,
   ExampleDetailSchema,
   RegistryEntrySchema,
@@ -53,26 +49,6 @@ export async function fetchRegistryEntries(): Promise<RegistryEntry[]> {
   return parseRegistryEntries(registry.items);
 }
 
-export function parseUIComponents(entries: RegistryEntry[]): RegistryComponent[] {
-  return entries.flatMap((item) => {
-    if (item.type !== "registry:ui") {
-      return [];
-    }
-
-    const parsedComponent = ComponentSchema.safeParse({
-      name: item.name,
-      type: item.type,
-      description: item.description,
-    });
-
-    return parsedComponent.success ? [parsedComponent.data] : [];
-  });
-}
-
-export async function fetchUIComponents(): Promise<RegistryComponent[]> {
-  return parseUIComponents(await fetchRegistryEntries());
-}
-
 export async function fetchRegistryItemDetails(
   name: string,
 ): Promise<RegistryItemDetail> {
@@ -80,16 +56,6 @@ export async function fetchRegistryItemDetails(
     `${REGISTRY_ITEM_URL}/${name}`,
     RegistryItemDetailSchema,
     `registry item ${name}`,
-  );
-}
-
-export async function fetchComponentDetails(
-  name: string,
-): Promise<RegistryComponentDetail> {
-  return fetchJson(
-    `${REGISTRY_ITEM_URL}/${name}`,
-    ComponentDetailSchema,
-    `component ${name}`,
   );
 }
 
@@ -108,10 +74,6 @@ export function parseExampleComponents(entries: RegistryEntry[]): RegistryExampl
 
     return parsedExample.success ? [parsedExample.data] : [];
   });
-}
-
-export async function fetchExampleComponents(): Promise<RegistryExample[]> {
-  return parseExampleComponents(await fetchRegistryEntries());
 }
 
 export async function fetchExampleDetails(

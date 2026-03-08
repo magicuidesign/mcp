@@ -1,20 +1,14 @@
 import type { z } from "zod";
 import type {
-  ComponentDetailSchema,
-  ComponentSchema,
   ExampleComponentSchema,
   ExampleDetailSchema,
-  IndividualComponentSchema,
   RegistryEntrySchema,
   RegistryItemDetailSchema,
 } from "../registry/schemas.js";
 
 export type RegistryEntry = z.infer<typeof RegistryEntrySchema>;
-export type RegistryComponent = z.infer<typeof ComponentSchema>;
-export type RegistryComponentDetail = z.infer<typeof ComponentDetailSchema>;
 export type RegistryExample = z.infer<typeof ExampleComponentSchema>;
 export type RegistryExampleDetail = z.infer<typeof ExampleDetailSchema>;
-export type RegistryEnrichedComponent = z.infer<typeof IndividualComponentSchema>;
 export type RegistryItemDetail = z.infer<typeof RegistryItemDetailSchema>;
 
 export type RegistryCatalogItem = {
@@ -23,7 +17,6 @@ export type RegistryCatalogItem = {
   description?: string;
   kind: string;
   registryType: string;
-  categories: string[];
 };
 
 export type RegistryCatalogItemDetail = RegistryCatalogItem & {
@@ -45,7 +38,6 @@ export type RegistryCatalogItemDetail = RegistryCatalogItem & {
 
 export type RegistrySnapshot = {
   entries: RegistryEntry[];
-  components: RegistryComponent[];
   examples: RegistryExample[];
   exampleNamesByComponent: Map<string, string[]>;
 };
