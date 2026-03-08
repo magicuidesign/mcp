@@ -240,6 +240,7 @@ export class RegistryService {
   ): RegistryCatalogItem[] {
     const normalizedKind = options?.kind?.trim().toLowerCase();
     const normalizedQuery = options?.query?.trim().toLowerCase();
+    const queryTerms = this.tokenizeSearchWords(options?.query ?? "");
 
     return catalog
       .filter((item) => {
@@ -257,16 +258,13 @@ export class RegistryService {
           return true;
         }
 
-        const searchableFields = [
-          item.name,
-          item.title,
-          item.description ?? "",
-          item.kind,
-          item.registryType,
-        ];
-
-        return searchableFields.some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
+        const searchTerms = this.buildSearchTerms(item);
+        return (
+          searchTerms.some((value) => value.includes(normalizedQuery)) ||
+          (queryTerms.length > 0 &&
+            queryTerms.every((queryTerm) =>
+              searchTerms.some((term) => term.includes(queryTerm)),
+            ))
         );
       })
       .sort((left, right) => left.name.localeCompare(right.name));
@@ -274,6 +272,8 @@ export class RegistryService {
 
   private getSearchScore(item: RegistryCatalogItem, query: string): number {
     const normalizedQuery = query.toLowerCase();
+    const searchTerms = this.buildSearchTerms(item);
+    const queryTerms = this.tokenizeSearchWords(query);
 
     if (!normalizedQuery) {
       return 0;
@@ -303,6 +303,21 @@ export class RegistryService {
 
     if (item.registryType.toLowerCase() === normalizedQuery) {
       score += 25;
+    }
+
+    if (searchTerms.some((term) => term === normalizedQuery)) {
+      score += 40;
+    } else if (searchTerms.some((term) => term.includes(normalizedQuery))) {
+      score += 20;
+    }
+
+    if (
+      queryTerms.length > 1 &&
+      queryTerms.every((queryTerm) =>
+        searchTerms.some((term) => term.includes(queryTerm)),
+      )
+    ) {
+      score += 15;
     }
 
     return score;
@@ -361,6 +376,79 @@ export class RegistryService {
       const relatedItem = catalogByName.get(relatedName);
       return relatedItem ? [relatedItem] : [];
     });
+  }
+
+  private buildSearchTerms(item: RegistryCatalogItem): string[] {
+    const fields = [
+      item.name,
+      item.title,
+      item.description ?? "",
+      item.kind,
+      item.registryType,
+    ];
+
+    return [...new Set(fields.flatMap((field) => this.tokenizeSearchValue(field)))];
+  }
+
+  private tokenizeSearchValue(value: string): string[] {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (!normalizedValue) {
+      return [];
+    }
+
+    const rawTokens = normalizedValue
+      .split(/[^a-z0-9]+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+
+    const normalizedTokens = rawTokens.flatMap((token) => {
+      const singularToken = this.toSingularToken(token);
+
+      return singularToken && singularToken !== token
+        ? [token, singularToken]
+        : [token];
+    });
+
+    return [...new Set([normalizedValue, ...normalizedTokens])];
+  }
+
+  private tokenizeSearchWords(value: string): string[] {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (!normalizedValue) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        normalizedValue
+          .split(/[^a-z0-9]+/)
+          .map((token) => token.trim())
+          .filter(Boolean)
+          .map((token) => this.toSingularToken(token) ?? token),
+      ),
+    ];
+  }
+
+  private toSingularToken(token: string): string | undefined {
+    if (token.length <= 3 || token.endsWith("ss")) {
+      return undefined;
+    }
+
+    if (token.endsWith("ies") && token.length > 4) {
+      return `${token.slice(0, -3)}y`;
+    }
+
+    if (/(ches|shes|xes|zes|ses|oes)$/.test(token) && token.length > 4) {
+      return token.slice(0, -2);
+    }
+
+    if (token.endsWith("s") && token.length > 3) {
+      return token.slice(0, -1);
+    }
+
+    return undefined;
   }
 
   private extractRegistryDependencyNames(
