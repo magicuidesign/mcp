@@ -14,7 +14,7 @@ const listRegistryItemsSchema = {
     .string()
     .optional()
     .describe(
-      "Optional text filter applied to names, titles, descriptions, and categories.",
+      "Optional text filter applied to names, titles, descriptions, and registry types.",
     ),
   limit: z
     .number()
@@ -23,6 +23,12 @@ const listRegistryItemsSchema = {
     .max(150)
     .optional()
     .describe("Maximum number of items to return. Defaults to 25."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Pagination offset for exhaustive registry browsing. Defaults to 0."),
 };
 
 const getRegistryItemSchema = {
@@ -46,7 +52,7 @@ const searchRegistryItemsSchema = {
     .string()
     .min(1)
     .describe(
-      "Search query matched against names, titles, descriptions, and categories.",
+      "Search query matched against names, titles, descriptions, and registry types.",
     ),
   kind: z
     .string()
@@ -59,6 +65,12 @@ const searchRegistryItemsSchema = {
     .max(150)
     .optional()
     .describe("Maximum number of results to return. Defaults to 25."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Pagination offset for stepping through ranked search results. Defaults to 0."),
 };
 
 export function registerGenericTools(server: McpServer) {

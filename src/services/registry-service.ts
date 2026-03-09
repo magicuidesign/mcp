@@ -2,26 +2,16 @@ import type {
   RegistryCatalogItem,
   RegistryCatalogItemDetail,
   RegistryEntry,
-  RegistryComponent,
-  RegistryEnrichedComponent,
   RegistryExample,
   RegistryItemDetail,
   RegistrySnapshot,
 } from "../domain/registry.js";
 import {
-  type ComponentCategoryName,
-  componentCategories,
-  getCategoriesForComponent,
-} from "../registry/categories.js";
-import {
-  fetchComponentDetails,
   fetchExampleDetails,
   fetchRegistryEntries,
   fetchRegistryItemDetails,
   parseExampleComponents,
-  parseUIComponents,
 } from "../registry/client.js";
-import { IndividualComponentSchema } from "../registry/schemas.js";
 import { formatComponentName, formatDisplayName } from "../utils/formatters.js";
 
 const DEFAULT_RESULT_LIMIT = 25;
@@ -30,10 +20,6 @@ const MAX_RESULT_LIMIT = 150;
 export class RegistryService {
   private snapshot?: RegistrySnapshot;
   private snapshotPromise?: Promise<RegistrySnapshot>;
-
-  async listUIComponents(): Promise<RegistryComponent[]> {
-    return parseUIComponents(await fetchRegistryEntries());
-  }
 
   async createSnapshot(): Promise<RegistrySnapshot> {
     if (this.snapshot) {
@@ -52,12 +38,10 @@ export class RegistryService {
   private async loadSnapshot(): Promise<RegistrySnapshot> {
     try {
       const entries = await fetchRegistryEntries();
-      const components = parseUIComponents(entries);
       const examples = parseExampleComponents(entries);
 
       const snapshot = {
         entries,
-        components,
         examples,
         exampleNamesByComponent: this.buildExampleComponentMap(examples),
       };
@@ -69,36 +53,33 @@ export class RegistryService {
     }
   }
 
-  async getCategoryComponents(
-    category: ComponentCategoryName,
-    snapshot?: RegistrySnapshot,
-  ): Promise<RegistryEnrichedComponent[]> {
-    const activeSnapshot = snapshot ?? (await this.createSnapshot());
-
-    return this.fetchComponentsByNames(
-      componentCategories[category],
-      activeSnapshot,
-    );
-  }
-
   async listRegistryItems(options?: {
     kind?: string;
     query?: string;
     limit?: number;
+    offset?: number;
   }): Promise<{
     total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
     availableKinds: string[];
     items: RegistryCatalogItem[];
   }> {
     const snapshot = await this.createSnapshot();
     const catalog = this.buildCatalog(snapshot);
     const filteredCatalog = this.filterCatalog(catalog, options);
-    const items = filteredCatalog.slice(0, this.normalizeLimit(options?.limit));
+    const page = this.paginateItems(filteredCatalog, options);
 
     return {
       total: filteredCatalog.length,
+      limit: page.limit,
+      offset: page.offset,
+      hasMore: page.hasMore,
+      nextOffset: page.nextOffset,
       availableKinds: this.getAvailableKinds(catalog),
-      items,
+      items: page.items,
     };
   }
 
@@ -106,9 +87,14 @@ export class RegistryService {
     query: string;
     kind?: string;
     limit?: number;
+    offset?: number;
   }): Promise<{
     query: string;
     total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
     availableKinds: string[];
     items: RegistryCatalogItem[];
   }> {
@@ -133,13 +119,17 @@ export class RegistryService {
         return left.item.name.localeCompare(right.item.name);
       })
       .map((entry) => entry.item);
-    const items = rankedItems.slice(0, this.normalizeLimit(options.limit));
+    const page = this.paginateItems(rankedItems, options);
 
     return {
       query,
       total: rankedItems.length,
+      limit: page.limit,
+      offset: page.offset,
+      hasMore: page.hasMore,
+      nextOffset: page.nextOffset,
       availableKinds: this.getAvailableKinds(catalog),
-      items,
+      items: page.items,
     };
   }
 
@@ -249,72 +239,6 @@ export class RegistryService {
     return exampleMap;
   }
 
-  private async fetchComponentsByNames(
-    componentNames: readonly string[],
-    snapshot: RegistrySnapshot,
-  ): Promise<RegistryEnrichedComponent[]> {
-    const componentResults: RegistryEnrichedComponent[] = [];
-    const componentsByName = new Map(
-      snapshot.components.map((component) => [component.name, component]),
-    );
-
-    for (const componentName of componentNames) {
-      const component = componentsByName.get(componentName);
-
-      if (!component) {
-        continue;
-      }
-
-      try {
-        const componentDetails = await fetchComponentDetails(componentName);
-        const componentContent = this.buildFilesSource(componentDetails.files);
-
-        if (!componentContent) {
-          throw new Error(`Component ${componentName} is missing source content`);
-        }
-
-        const relevantExampleNames =
-          snapshot.exampleNamesByComponent.get(componentName) ?? [];
-
-        const exampleDetailsList = await Promise.all(
-          relevantExampleNames.map((name) => fetchExampleDetails(name)),
-        );
-
-        const formattedExamples = exampleDetailsList.flatMap((details) => {
-          const exampleContent = this.buildFilesSource(details.files);
-
-          if (!exampleContent) {
-            return [];
-          }
-
-          return [
-            {
-              name: details.name,
-              type: details.type,
-              description: details.description,
-              content: exampleContent,
-            },
-          ];
-        });
-
-        const validatedComponent = IndividualComponentSchema.parse({
-          name: component.name,
-          type: component.type,
-          description: component.description,
-          install: this.buildInstallInstructions(component.name),
-          content: this.buildComponentContext(component.name, componentContent),
-          examples: formattedExamples,
-        });
-
-        componentResults.push(validatedComponent);
-      } catch (error) {
-        console.error(`Error processing component ${componentName}:`, error);
-      }
-    }
-
-    return componentResults;
-  }
-
   private buildCatalog(snapshot: RegistrySnapshot): RegistryCatalogItem[] {
     return snapshot.entries.map((entry) => ({
       name: entry.name,
@@ -322,8 +246,6 @@ export class RegistryService {
       description: entry.description,
       kind: this.normalizeKind(entry.type),
       registryType: entry.type,
-      categories:
-        entry.type === "registry:ui" ? getCategoriesForComponent(entry.name) : [],
     }));
   }
 
@@ -336,6 +258,7 @@ export class RegistryService {
   ): RegistryCatalogItem[] {
     const normalizedKind = options?.kind?.trim().toLowerCase();
     const normalizedQuery = options?.query?.trim().toLowerCase();
+    const queryTerms = this.tokenizeSearchWords(options?.query ?? "");
 
     return catalog
       .filter((item) => {
@@ -353,17 +276,13 @@ export class RegistryService {
           return true;
         }
 
-        const searchableFields = [
-          item.name,
-          item.title,
-          item.description ?? "",
-          item.kind,
-          item.registryType,
-          ...item.categories,
-        ];
-
-        return searchableFields.some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
+        const searchTerms = this.buildSearchTerms(item);
+        return (
+          searchTerms.some((value) => value.includes(normalizedQuery)) ||
+          (queryTerms.length > 0 &&
+            queryTerms.every((queryTerm) =>
+              searchTerms.some((term) => term.includes(queryTerm)),
+            ))
         );
       })
       .sort((left, right) => left.name.localeCompare(right.name));
@@ -371,6 +290,9 @@ export class RegistryService {
 
   private getSearchScore(item: RegistryCatalogItem, query: string): number {
     const normalizedQuery = query.toLowerCase();
+    const searchTerms = this.buildSearchTerms(item);
+    const queryTerms = this.tokenizeSearchWords(query);
+    const queryVariants = [...new Set([normalizedQuery, ...queryTerms])];
 
     if (!normalizedQuery) {
       return 0;
@@ -378,45 +300,106 @@ export class RegistryService {
 
     let score = 0;
 
-    if (item.name === normalizedQuery) {
-      score += 120;
-    } else if (item.name.includes(normalizedQuery)) {
-      score += 90;
-    }
-
-    if (item.title.toLowerCase() === normalizedQuery) {
-      score += 100;
-    } else if (item.title.toLowerCase().includes(normalizedQuery)) {
-      score += 70;
-    }
-
-    if (item.description?.toLowerCase().includes(normalizedQuery)) {
-      score += 35;
-    }
-
-    if (item.kind.toLowerCase() === normalizedQuery) {
-      score += 25;
-    }
-
-    if (item.registryType.toLowerCase() === normalizedQuery) {
-      score += 25;
-    }
+    score += this.getVariantMatchScore(item.name, queryVariants, 120, 90);
+    score += this.getVariantMatchScore(
+      item.title.toLowerCase(),
+      queryVariants,
+      100,
+      70,
+    );
+    score += this.getVariantContainsScore(
+      item.description?.toLowerCase(),
+      queryVariants,
+      35,
+    );
+    score += this.getVariantMatchScore(item.kind.toLowerCase(), queryVariants, 25, 15);
+    score += this.getVariantMatchScore(
+      item.registryType.toLowerCase(),
+      queryVariants,
+      25,
+      15,
+    );
+    score += this.getSearchTermScore(searchTerms, queryVariants, 40, 20);
 
     if (
-      item.categories.some(
-        (category) => category.toLowerCase() === normalizedQuery,
+      queryTerms.length > 0 &&
+      queryTerms.every((queryTerm) =>
+        searchTerms.some((term) => term.includes(queryTerm)),
       )
     ) {
-      score += 40;
-    } else if (
-      item.categories.some((category) =>
-        category.toLowerCase().includes(normalizedQuery),
-      )
-    ) {
-      score += 20;
+      score += 15;
     }
 
     return score;
+  }
+
+  private getVariantMatchScore(
+    value: string,
+    variants: string[],
+    exactScore: number,
+    containsScore: number,
+  ): number {
+    let bestScore = 0;
+
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (value === variant) {
+        bestScore = Math.max(bestScore, exactScore);
+        continue;
+      }
+
+      if (value.includes(variant)) {
+        bestScore = Math.max(bestScore, containsScore);
+      }
+    }
+
+    return bestScore;
+  }
+
+  private getVariantContainsScore(
+    value: string | undefined,
+    variants: string[],
+    containsScore: number,
+  ): number {
+    if (!value) {
+      return 0;
+    }
+
+    return variants.some((variant) => variant && value.includes(variant))
+      ? containsScore
+      : 0;
+  }
+
+  private getSearchTermScore(
+    searchTerms: string[],
+    variants: string[],
+    exactScore: number,
+    containsScore: number,
+  ): number {
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (searchTerms.some((term) => term === variant)) {
+        return exactScore;
+      }
+    }
+
+    for (const variant of variants) {
+      if (!variant) {
+        continue;
+      }
+
+      if (searchTerms.some((term) => term.includes(variant))) {
+        return containsScore;
+      }
+    }
+
+    return 0;
   }
 
   private getAvailableKinds(catalog: RegistryCatalogItem[]): string[] {
@@ -442,6 +425,42 @@ export class RegistryService {
     }
 
     return Math.min(Math.max(Math.trunc(limit), 1), MAX_RESULT_LIMIT);
+  }
+
+  private normalizeOffset(offset?: number): number {
+    if (offset === undefined || Number.isNaN(offset)) {
+      return 0;
+    }
+
+    return Math.max(Math.trunc(offset), 0);
+  }
+
+  private paginateItems<T>(
+    items: T[],
+    options?: {
+      limit?: number;
+      offset?: number;
+    },
+  ): {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+    nextOffset?: number;
+    items: T[];
+  } {
+    const limit = this.normalizeLimit(options?.limit);
+    const offset = this.normalizeOffset(options?.offset);
+    const paginatedItems = items.slice(offset, offset + limit);
+    const nextOffset = offset + paginatedItems.length;
+    const hasMore = nextOffset < items.length;
+
+    return {
+      limit,
+      offset,
+      hasMore,
+      nextOffset: hasMore ? nextOffset : undefined,
+      items: paginatedItems,
+    };
   }
 
   private getEntryDependencies(entries: RegistryEntry[], name: string): string[] {
@@ -472,6 +491,79 @@ export class RegistryService {
       const relatedItem = catalogByName.get(relatedName);
       return relatedItem ? [relatedItem] : [];
     });
+  }
+
+  private buildSearchTerms(item: RegistryCatalogItem): string[] {
+    const fields = [
+      item.name,
+      item.title,
+      item.description ?? "",
+      item.kind,
+      item.registryType,
+    ];
+
+    return [...new Set(fields.flatMap((field) => this.tokenizeSearchValue(field)))];
+  }
+
+  private tokenizeSearchValue(value: string): string[] {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (!normalizedValue) {
+      return [];
+    }
+
+    const rawTokens = normalizedValue
+      .split(/[^a-z0-9]+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+
+    const normalizedTokens = rawTokens.flatMap((token) => {
+      const singularToken = this.toSingularToken(token);
+
+      return singularToken && singularToken !== token
+        ? [token, singularToken]
+        : [token];
+    });
+
+    return [...new Set([normalizedValue, ...normalizedTokens])];
+  }
+
+  private tokenizeSearchWords(value: string): string[] {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (!normalizedValue) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        normalizedValue
+          .split(/[^a-z0-9]+/)
+          .map((token) => token.trim())
+          .filter(Boolean)
+          .map((token) => this.toSingularToken(token) ?? token),
+      ),
+    ];
+  }
+
+  private toSingularToken(token: string): string | undefined {
+    if (token.length <= 3 || token.endsWith("ss")) {
+      return undefined;
+    }
+
+    if (token.endsWith("ies") && token.length > 4) {
+      return `${token.slice(0, -3)}y`;
+    }
+
+    if (/(ches|shes|xes|zes|ses|oes)$/.test(token) && token.length > 4) {
+      return token.slice(0, -2);
+    }
+
+    if (token.endsWith("s") && token.length > 3) {
+      return token.slice(0, -1);
+    }
+
+    return undefined;
   }
 
   private extractRegistryDependencyNames(
@@ -559,10 +651,6 @@ export class RegistryService {
       .join("\n\n");
 
     return source || undefined;
-  }
-
-  private buildInstallInstructions(componentName: string): string {
-    return `Install the component using the same process as shadcn/ui. If you run into linter or dependency errors, make sure to install the component using these instructions. For example, with npm/npx: npx shadcn@latest add "https://magicui.design/r/${componentName}.json" (Rules: make sure the URL is wrapped in double quotes and use shadcn not shadcn-ui, or the command will fail). After installation, you can import the component like this: import { ${formatComponentName(componentName)} } from "@/components/ui/${componentName}";`;
   }
 
   private buildRegistryInstallCommand(name: string): string {
