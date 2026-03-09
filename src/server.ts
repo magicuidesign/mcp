@@ -6,7 +6,7 @@ import { registerGenericTools } from "./tools/register-generic-tools.js";
 
 const server = new McpServer({
   name: "Magic UI MCP",
-  version: "1.0.4",
+  version: "2.0.0",
 });
 
 registerGenericTools(server);
