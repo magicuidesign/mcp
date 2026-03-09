@@ -10,7 +10,9 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch src --ext ts,json --exec \"npm run build\""
+    "dev": "nodemon --watch src --ext ts,json --exec \"npm run build\"",
+    "release": "release-it",
+    "release:dry-run": "release-it --dry-run"
   },
   "type": "module",
   "main": "./dist/server.js",
