@@ -1,6 +1,6 @@
 # @magicuidesign/mcp
 
-[![npm version](https://badge.fury.io/js/@magicuidesign%2Fmcp.svg?icon=si%3Anpm)](https://badge.fury.io/js/@magicuidesign%2Fmcp)
+[![npm version](https://img.shields.io/npm/v/%40magicuidesign%2Fmcp.svg)](https://www.npmjs.com/package/@magicuidesign/mcp)
 
 Official ModelContextProtocol (MCP) server for [Magic UI](https://magicui.design/).
 
