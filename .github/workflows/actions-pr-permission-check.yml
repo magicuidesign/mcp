@@ -1,0 +1,19 @@
+name: actions-pr-permission-check
+
+on:
+  push:
+    branches: [test/actions-pr-permission]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$GITHUB_REF_NAME" --title "test: actions PR permission check (auto-closed)" --body "Temporary check that GITHUB_TOKEN may create pull requests. Closed by the same workflow run."
+          gh pr close --repo "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" --delete-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
