@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { registryService } from "../services/registry-service.js";
 import { createErrorResponse, createTextResponse } from "./responses.js";
@@ -73,11 +74,21 @@ const searchRegistryItemsSchema = {
     .describe("Pagination offset for stepping through ranked search results. Defaults to 0."),
 };
 
+const readOnlyRegistryToolAnnotations: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+};
+
 export function registerGenericTools(server: McpServer) {
-  server.tool(
+  server.registerTool(
     "listRegistryItems",
-    "Lists Magic UI registry items with optional filtering by kind, query, and limit.",
-    listRegistryItemsSchema,
+    {
+      description: "Lists Magic UI registry items with optional filtering by kind, query, and limit.",
+      inputSchema: listRegistryItemsSchema,
+      annotations: readOnlyRegistryToolAnnotations,
+    },
     async (args) => {
       try {
         const result = await registryService.listRegistryItems(args);
@@ -88,10 +99,13 @@ export function registerGenericTools(server: McpServer) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "getRegistryItem",
-    "Gets detailed information for a single Magic UI registry item.",
-    getRegistryItemSchema,
+    {
+      description: "Gets detailed information for a single Magic UI registry item.",
+      inputSchema: getRegistryItemSchema,
+      annotations: readOnlyRegistryToolAnnotations,
+    },
     async (args) => {
       try {
         const result = await registryService.getRegistryItem(args.name, {
@@ -109,10 +123,13 @@ export function registerGenericTools(server: McpServer) {
     },
   );
 
-  server.tool(
+  server.registerTool(
     "searchRegistryItems",
-    "Searches Magic UI registry items by keyword or use case.",
-    searchRegistryItemsSchema,
+    {
+      description: "Searches Magic UI registry items by keyword or use case.",
+      inputSchema: searchRegistryItemsSchema,
+      annotations: readOnlyRegistryToolAnnotations,
+    },
     async (args) => {
       try {
         const result = await registryService.searchRegistryItems(args);

@@ -34,6 +34,7 @@ export type RegistryCatalogItemDetail = RegistryCatalogItem & {
   examples?: Array<RegistryCatalogItemBase & {
     content: string;
   }>;
+  warnings?: string[];
 };
 
 export type RegistrySnapshot = {

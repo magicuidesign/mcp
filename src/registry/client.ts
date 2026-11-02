@@ -15,13 +15,16 @@ import {
 
 const REGISTRY_URL = "https://magicui.design/registry.json";
 const REGISTRY_ITEM_URL = "https://magicui.design/r";
+const REQUEST_TIMEOUT_MS = 10_000;
 
 async function fetchJson<T>(
   url: string,
   schema: ZodType<T>,
   errorLabel: string,
 ): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
 
   if (!response.ok) {
     throw new Error(

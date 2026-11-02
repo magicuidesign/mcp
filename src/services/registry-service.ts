@@ -31,22 +31,34 @@ import type {
 
 const DEFAULT_RESULT_LIMIT = 25;
 const MAX_RESULT_LIMIT = 150;
+const SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000;
+const SNAPSHOT_RETRY_DELAY_MS = 60 * 1000;
 
 export class RegistryService {
   private snapshot?: RegistrySnapshot;
+  private snapshotRefreshAt = 0;
   private snapshotPromise?: Promise<RegistrySnapshot>;
 
+  // Serves the cached catalog and refreshes it in the background once it is
+  // older than SNAPSHOT_MAX_AGE_MS. A failed refresh keeps the last good
+  // snapshot and is retried after SNAPSHOT_RETRY_DELAY_MS.
   async createSnapshot(): Promise<RegistrySnapshot> {
-    if (this.snapshot) {
-      return this.snapshot;
+    if (!this.snapshot) {
+      return this.refreshSnapshot();
     }
 
-    if (this.snapshotPromise) {
-      return this.snapshotPromise;
+    if (!this.snapshotPromise && Date.now() >= this.snapshotRefreshAt) {
+      this.refreshSnapshot().catch((error) => {
+        this.snapshotRefreshAt = Date.now() + SNAPSHOT_RETRY_DELAY_MS;
+        console.error("Error refreshing registry catalog, keeping cached copy:", error);
+      });
     }
 
-    this.snapshotPromise = this.loadSnapshot();
+    return this.snapshot;
+  }
 
+  private refreshSnapshot(): Promise<RegistrySnapshot> {
+    this.snapshotPromise ??= this.loadSnapshot();
     return this.snapshotPromise;
   }
 
@@ -62,6 +74,7 @@ export class RegistryService {
       };
 
       this.snapshot = snapshot;
+      this.snapshotRefreshAt = Date.now() + SNAPSHOT_MAX_AGE_MS;
       return snapshot;
     } finally {
       this.snapshotPromise = undefined;
@@ -150,6 +163,8 @@ export class RegistryService {
       registryDependencies: this.getEntryRegistryDependencies(snapshot.entries, name),
     };
 
+    const warnings: string[] = [];
+
     if (options?.includeRelated) {
       detail.relatedItems = this.getRelatedItems(item, catalog, snapshot);
     }
@@ -164,6 +179,7 @@ export class RegistryService {
         }
       } catch (error) {
         console.error(`Error fetching source for registry item ${name}:`, error);
+        warnings.push(`Failed to fetch source for ${name}: ${getErrorMessage(error)}`);
       }
     }
 
@@ -178,6 +194,9 @@ export class RegistryService {
           console.error(
             `Error fetching example ${relatedExampleNames[index]} for registry item ${name}:`,
             result.reason,
+          );
+          warnings.push(
+            `Failed to fetch example ${relatedExampleNames[index]}: ${getErrorMessage(result.reason)}`,
           );
           return [];
         }
@@ -197,6 +216,10 @@ export class RegistryService {
           },
         ];
       });
+    }
+
+    if (warnings.length > 0) {
+      detail.warnings = warnings;
     }
 
     return detail;
@@ -636,6 +659,10 @@ export class RegistryService {
   ): string {
     return `The code below is for context only. It helps you understand the component's props, types, and behavior. To actually install and use the component, refer to the install instructions above. After installing, the component will be available for import via: import { ${formatComponentName(componentName)} } from "@/components/ui/${componentName}";${componentContent}`;
   }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 export const registryService = new RegistryService();
