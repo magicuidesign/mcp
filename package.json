@@ -10,10 +10,11 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch src --ext ts,json --exec \"npm run build\"",
+    "dev": "nodemon --watch src --ext ts,json --exec \"pnpm run build\"",
     "release": "release-it",
     "release:dry-run": "release-it --dry-run"
   },
+  "packageManager": "pnpm@12.9.0",
   "type": "module",
   "main": "./dist/server.js",
   "module": "./dist/server.js",
