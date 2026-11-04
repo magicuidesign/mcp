@@ -22,8 +22,6 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v5
         id: release
-        with:
-          release-type: node
 
   publish:
     needs: release-please
