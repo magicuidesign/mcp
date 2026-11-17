@@ -651,7 +651,7 @@ export class RegistryService {
     componentName: string,
     componentContent: string,
   ): string {
-    return `The code below is for context only. It helps you understand the component's props, types, and behavior. To actually install and use the component, refer to the install instructions above. After installing, the component will be available for import from "@/components/ui/${componentName}".\n\n${componentContent}`;
+    return `The code below is for context only. It helps you understand the component's props, types, and behavior. To actually install and use the component, refer to the install instructions above. After installing, the component is typically available for import from "@/components/ui/${componentName}", depending on the project's components.json.\n\n${componentContent}`;
   }
 }
 
