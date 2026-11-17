@@ -13,6 +13,7 @@ createInterface({ input: server.stdout }).on("line", (line) => {
   const message = JSON.parse(line);
   pending.get(message.id)?.(message);
 });
+server.on("exit", (code, signal) => fail(`server exited early (code=${code}, signal=${signal})`));
 
 const send = (message) => server.stdin.write(`${JSON.stringify(message)}\n`);
 const request = (id, method, params) =>
@@ -46,5 +47,6 @@ if (JSON.stringify(names) !== JSON.stringify(EXPECTED_TOOLS)) {
 }
 
 clearTimeout(timer);
+server.removeAllListeners("exit");
 server.kill();
 console.log(`smoke test passed: ${names.join(", ")}`);
