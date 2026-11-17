@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.0](https://github.com/magicuidesign/mcp/compare/v2.1.1...v3.0.0) (2026-11-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* the searchRegistryItems tool is removed. listRegistryItems no longer accepts query, defaults kind to component, returns every matching item unless limit is set, and returns only name and description per item. getRegistryItem is unchanged.
+
+### Features
+
+* remove searchRegistryItems and return all components from listRegistryItems ([#26](https://github.com/magicuidesign/mcp/issues/26)) ([94b0d4c](https://github.com/magicuidesign/mcp/commit/94b0d4c5260530ae65cf1e9666cec8cb0d97526b))
+
+
+### Bug Fixes
+
+* stop stating the component import path as a fact ([#29](https://github.com/magicuidesign/mcp/issues/29)) ([931ce8b](https://github.com/magicuidesign/mcp/commit/931ce8bb86e070e1d8743d29f5054f12faff4b41))
+
+
+### Performance Improvements
+
+* return compact JSON from tools ([#30](https://github.com/magicuidesign/mcp/issues/30)) ([cdaece0](https://github.com/magicuidesign/mcp/commit/cdaece0fb0ca49cbe61a35ba987497bb73a34a88))
+
 ## [2.1.1](https://github.com/magicuidesign/mcp/compare/v2.1.0...v2.1.1) (2026-11-17)
 
 
