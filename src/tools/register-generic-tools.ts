@@ -9,34 +9,27 @@ const listRegistryItemsSchema = {
     .string()
     .optional()
     .describe(
-      "Optional kind filter such as component, example, style, or a raw registry type like registry:ui.",
-    ),
-  query: z
-    .string()
-    .optional()
-    .describe(
-      "Optional text filter applied to names, titles, descriptions, and registry types.",
+      "Kind of item to list, such as component, example, style, or a raw registry type like registry:ui. Defaults to component.",
     ),
   limit: z
     .number()
     .int()
     .min(1)
-    .max(150)
     .optional()
-    .describe("Maximum number of items to return. Defaults to 25."),
+    .describe("Maximum number of items to return. Defaults to all matching items."),
   offset: z
     .number()
     .int()
     .min(0)
     .optional()
-    .describe("Pagination offset for exhaustive registry browsing. Defaults to 0."),
+    .describe("Pagination offset. Defaults to 0."),
 };
 
 const getRegistryItemSchema = {
   name: z
     .string()
     .describe(
-      "Registry item name, for example marquee. The @magicui/marquee form and the item registryUrl are also accepted.",
+      "Registry item name from listRegistryItems, for example marquee. The @magicui/marquee form and the item registryUrl are also accepted.",
     ),
   includeSource: z
     .boolean()
@@ -52,32 +45,6 @@ const getRegistryItemSchema = {
     .describe("Include related registry items such as examples or dependencies."),
 };
 
-const searchRegistryItemsSchema = {
-  query: z
-    .string()
-    .min(1)
-    .describe(
-      "Search query matched against names, titles, descriptions, and registry types.",
-    ),
-  kind: z
-    .string()
-    .optional()
-    .describe("Optional kind filter such as component, example, or style."),
-  limit: z
-    .number()
-    .int()
-    .min(1)
-    .max(150)
-    .optional()
-    .describe("Maximum number of results to return. Defaults to 25."),
-  offset: z
-    .number()
-    .int()
-    .min(0)
-    .optional()
-    .describe("Pagination offset for stepping through ranked search results. Defaults to 0."),
-};
-
 const readOnlyRegistryToolAnnotations: ToolAnnotations = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -89,7 +56,8 @@ export function registerGenericTools(server: McpServer) {
   server.registerTool(
     "listRegistryItems",
     {
-      description: "Lists Magic UI registry items with optional filtering by kind, query, and limit.",
+      description:
+        "Lists the name and description of Magic UI registry items, all components by default. Pick the items that fit from this list, then call getRegistryItem for install instructions, source, and examples.",
       inputSchema: listRegistryItemsSchema,
       annotations: readOnlyRegistryToolAnnotations,
     },
@@ -123,23 +91,6 @@ export function registerGenericTools(server: McpServer) {
           `Failed to fetch registry item ${args.name}`,
           error,
         );
-      }
-    },
-  );
-
-  server.registerTool(
-    "searchRegistryItems",
-    {
-      description: "Searches Magic UI registry items by keyword or use case.",
-      inputSchema: searchRegistryItemsSchema,
-      annotations: readOnlyRegistryToolAnnotations,
-    },
-    async (args) => {
-      try {
-        const result = await registryService.searchRegistryItems(args);
-        return createTextResponse(result);
-      } catch (error) {
-        return createErrorResponse("Failed to search registry items", error);
       }
     },
   );
