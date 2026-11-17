@@ -7,6 +7,7 @@ import type {
   RegistrySnapshot,
 } from "../domain/registry.js";
 import {
+  buildRegistryItemUrl,
   fetchExampleDetails,
   fetchRegistryEntries,
   fetchRegistryItemDetails,
@@ -154,7 +155,7 @@ export class RegistryService {
       ...item,
       install: {
         command: this.buildRegistryInstallCommand(name),
-        registryUrl: this.buildRegistryItemUrl(name),
+        registryUrl: buildRegistryItemUrl(name),
       },
       dependencies: this.getEntryDependencies(snapshot.entries, name),
       registryDependencies: this.getEntryRegistryDependencies(snapshot.entries, name),
@@ -643,11 +644,7 @@ export class RegistryService {
   }
 
   private buildRegistryInstallCommand(name: string): string {
-    return `npx shadcn@latest add "${this.buildRegistryItemUrl(name)}"`;
-  }
-
-  private buildRegistryItemUrl(name: string): string {
-    return `https://magicui.design/r/${name}.json`;
+    return `npx shadcn@latest add "${buildRegistryItemUrl(name)}"`;
   }
 
   private buildComponentContext(
