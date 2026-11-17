@@ -10,7 +10,12 @@ const server = spawn(process.execPath, ["dist/server.js"], {
 
 const pending = new Map();
 createInterface({ input: server.stdout }).on("line", (line) => {
-  const message = JSON.parse(line);
+  let message;
+  try {
+    message = JSON.parse(line);
+  } catch {
+    fail(`non-JSON line on stdout: ${line.slice(0, 200)}`);
+  }
   pending.get(message.id)?.(message);
 });
 server.on("exit", (code, signal) => fail(`server exited early (code=${code}, signal=${signal})`));
