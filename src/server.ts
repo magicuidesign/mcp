@@ -13,4 +13,4 @@ const server = new McpServer({
 registerGenericTools(server);
 
 const transport = new StdioServerTransport();
-server.connect(transport);
+await server.connect(transport);
