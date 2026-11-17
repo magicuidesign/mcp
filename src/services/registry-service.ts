@@ -143,7 +143,7 @@ export class RegistryService {
 
     if (options?.includeSource) {
       try {
-        const itemDetails = await this.fetchRegistryItemDetails(item.name);
+        const itemDetails = await fetchRegistryItemDetails(item.name);
         const source = this.buildRegistryItemSource(item, itemDetails);
 
         if (source) {
@@ -347,12 +347,6 @@ export class RegistryService {
     }
 
     return undefined;
-  }
-
-  private async fetchRegistryItemDetails(
-    name: string,
-  ): Promise<RegistryItemDetail> {
-    return fetchRegistryItemDetails(name);
   }
 
   private buildRegistryItemSource(
