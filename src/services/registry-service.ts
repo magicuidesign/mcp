@@ -12,10 +12,7 @@ import {
   fetchRegistryItemDetails,
   parseExampleComponents,
 } from "../registry/client.js";
-import {
-  formatComponentName,
-  formatDisplayName,
-} from "../utils/formatters.js";
+import { formatDisplayName } from "../utils/formatters.js";
 import { formatSearchString } from "../utils/search.js";
 import type {
   BuildFilesSourceOptions,
@@ -657,7 +654,7 @@ export class RegistryService {
     componentName: string,
     componentContent: string,
   ): string {
-    return `The code below is for context only. It helps you understand the component's props, types, and behavior. To actually install and use the component, refer to the install instructions above. After installing, the component will be available for import via: import { ${formatComponentName(componentName)} } from "@/components/ui/${componentName}";${componentContent}`;
+    return `The code below is for context only. It helps you understand the component's props, types, and behavior. To actually install and use the component, refer to the install instructions above. After installing, the component will be available for import from "@/components/ui/${componentName}".\n\n${componentContent}`;
   }
 }
 
