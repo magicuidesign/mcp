@@ -33,5 +33,5 @@
     "typescript": "^5.8.3"
   },
   "author": "Beau Hayes-Pollard <bbh44@cornell.edu>",
-  "license": "ISC"
+  "license": "MIT"
 }
