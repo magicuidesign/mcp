@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.1.1](https://github.com/magicuidesign/mcp/compare/v2.1.0...v2.1.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* accept the item name forms the server emits in getRegistryItem ([#27](https://github.com/magicuidesign/mcp/issues/27)) ([cc2adce](https://github.com/magicuidesign/mcp/commit/cc2adcea4ccf8dcbd9c7956fc9acc5b92db210cd))
+* report the package version in serverInfo ([#22](https://github.com/magicuidesign/mcp/issues/22)) ([d6e25a8](https://github.com/magicuidesign/mcp/commit/d6e25a8d4d6da34096ce89deeb9607b350d50ab8))
+* stop guessing the component import name and separate the notice from source ([#24](https://github.com/magicuidesign/mcp/issues/24)) ([1b6c79e](https://github.com/magicuidesign/mcp/commit/1b6c79efb41a8b749841699ff538d01ffc933705))
+
+
+### Performance Improvements
+
+* fetch registry items from the .json URL to skip the 308 redirect ([#25](https://github.com/magicuidesign/mcp/issues/25)) ([6196eed](https://github.com/magicuidesign/mcp/commit/6196eed7b6d37befa3f154ccadaf3c6bcb44d62d))
+
 ## 2.1.0 (2026-11-02)
 
 ### Bug Fixes
