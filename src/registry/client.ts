@@ -14,7 +14,7 @@ import {
 } from "./schemas.js";
 
 const REGISTRY_URL = "https://magicui.design/registry.json";
-const REGISTRY_ITEM_URL = "https://magicui.design/r";
+const REGISTRY_ITEM_BASE_URL = "https://magicui.design/r";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 async function fetchJson<T>(
@@ -34,6 +34,10 @@ async function fetchJson<T>(
 
   const data: unknown = await response.json();
   return schema.parse(data);
+}
+
+export function buildRegistryItemUrl(name: string): string {
+  return `${REGISTRY_ITEM_BASE_URL}/${name}.json`;
 }
 
 export async function fetchRegistry() {
@@ -56,7 +60,7 @@ export async function fetchRegistryItemDetails(
   name: string,
 ): Promise<RegistryItemDetail> {
   return fetchJson(
-    `${REGISTRY_ITEM_URL}/${name}`,
+    buildRegistryItemUrl(name),
     RegistryItemDetailSchema,
     `registry item ${name}`,
   );
@@ -83,7 +87,7 @@ export async function fetchExampleDetails(
   exampleName: string,
 ): Promise<RegistryExampleDetail> {
   return fetchJson(
-    `${REGISTRY_ITEM_URL}/${exampleName}`,
+    buildRegistryItemUrl(exampleName),
     ExampleDetailSchema,
     `example ${exampleName}`,
   );
