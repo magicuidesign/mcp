@@ -28,12 +28,6 @@ export type GetRegistryItemOptions = Partial<
     Record<GetRegistryItemOption, boolean>
 >;
 
-export type GetRegistryItemParams = {
-    name: string;
-    options?: GetRegistryItemOptions;
-};
-
-
 export type PaginateItemsOptions<T> = Partial<
     Pick<PaginatedResult<T>, "limit" | "offset">
 >;
