@@ -53,8 +53,7 @@ The server provides the following tools callable via MCP:
 
 | Tool Name       | Description                                                                                                                                                                                                                                                                                                                                                                                             |
 |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `listRegistryItems` | Lists Magic UI registry items with optional filters like `kind`, `query`, `limit`, and `offset`. Recommended for registry browsing. |
-| `searchRegistryItems` | Searches Magic UI registry items by keyword across names, titles, descriptions, and registry types, with pagination support. |
+| `listRegistryItems` | Lists the name and description of Magic UI registry items. Returns all components by default, with optional `kind`, `limit`, and `offset`. |
 | `getRegistryItem` | Returns details for a single registry item, including install instructions and optional source, related items, and examples. |
 
 ## MCP Limitations

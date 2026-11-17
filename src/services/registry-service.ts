@@ -15,21 +15,16 @@ import {
   parseExampleComponents,
 } from "../registry/client.js";
 import { formatDisplayName } from "../utils/formatters.js";
-import { formatSearchString } from "../utils/search.js";
 import type {
   BuildFilesSourceOptions,
-  FilterCatalogParams,
   GetRegistryItemOptions,
   ListRegistryItemsParams,
   ListRegistryItemsResult,
   PaginateItemsParams,
   PaginateItemsResult,
-  SearchRegistryItemsParams,
-  SearchRegistryItemsResult,
 } from "./types.js";
 
-const DEFAULT_RESULT_LIMIT = 25;
-const MAX_RESULT_LIMIT = 150;
+const DEFAULT_LIST_KIND = "component";
 const SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000;
 const SNAPSHOT_RETRY_DELAY_MS = 60 * 1000;
 
@@ -85,11 +80,19 @@ export class RegistryService {
   ): ListRegistryItemsResult {
     const snapshot = await this.createSnapshot();
     const catalog = this.buildCatalog(snapshot);
-    const filteredCatalog = this.filterCatalog({ catalog, options });
-    const page = this.paginateItems({ items: filteredCatalog, options });
+    const kind = options?.kind?.trim().toLowerCase() || DEFAULT_LIST_KIND;
+    const matchingItems = catalog
+      .filter(
+        (item) =>
+          item.kind.toLowerCase() === kind ||
+          item.registryType.toLowerCase() === kind,
+      )
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map(({ name, description }) => ({ name, description }));
+    const page = this.paginateItems({ items: matchingItems, options });
 
     const result: Awaited<ListRegistryItemsResult> = {
-      total: filteredCatalog.length,
+      total: matchingItems.length,
       limit: page.limit,
       offset: page.offset,
       hasMore: page.hasMore,
@@ -99,45 +102,6 @@ export class RegistryService {
     };
 
     return result;
-  }
-
-  async searchRegistryItems(
-    options: SearchRegistryItemsParams,
-  ): SearchRegistryItemsResult {
-    const snapshot = await this.createSnapshot();
-    const catalog = this.buildCatalog(snapshot);
-    const query = options.query.trim();
-    const filteredCatalog = this.filterCatalog({
-      catalog,
-      options: { kind: options.kind },
-    });
-
-    const rankedItems = filteredCatalog
-      .map((item) => ({
-        item,
-        score: this.getSearchScore(item, query),
-      }))
-      .filter((entry) => entry.score > 0)
-      .sort((left, right) => {
-        if (right.score !== left.score) {
-          return right.score - left.score;
-        }
-
-        return left.item.name.localeCompare(right.item.name);
-      })
-      .map((entry) => entry.item);
-    const page = this.paginateItems({ items: rankedItems, options });
-
-    return {
-      query,
-      total: rankedItems.length,
-      limit: page.limit,
-      offset: page.offset,
-      hasMore: page.hasMore,
-      nextOffset: page.nextOffset,
-      availableKinds: this.getAvailableKinds(catalog),
-      items: page.items,
-    };
   }
 
   async getRegistryItem(
@@ -271,156 +235,6 @@ export class RegistryService {
     }));
   }
 
-  private filterCatalog({
-    catalog,
-    options,
-  }: FilterCatalogParams): RegistryCatalogItem[] {
-    const normalizedKind = options?.kind?.trim().toLowerCase();
-    const normalizedQuery = options?.query?.trim().toLowerCase();
-    const queryTerms = this.tokenizeSearchWords(options?.query ?? "");
-
-    return catalog
-      .filter((item) => {
-        if (!normalizedKind) {
-          return true;
-        }
-
-        return (
-          item.kind.toLowerCase() === normalizedKind ||
-          item.registryType.toLowerCase() === normalizedKind
-        );
-      })
-      .filter((item) => {
-        if (!normalizedQuery) {
-          return true;
-        }
-
-        const searchTerms = this.buildSearchTerms(item);
-        return (
-          searchTerms.some((value) => value.includes(normalizedQuery)) ||
-          (queryTerms.length > 0 &&
-            queryTerms.every((queryTerm) =>
-              searchTerms.some((term) => term.includes(queryTerm)),
-            ))
-        );
-      })
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  private getSearchScore(item: RegistryCatalogItem, query: string): number {
-    const normalizedQuery = query.toLowerCase();
-    const searchTerms = this.buildSearchTerms(item);
-    const queryTerms = this.tokenizeSearchWords(query);
-    const queryVariants = [...new Set([normalizedQuery, ...queryTerms])];
-
-    if (!normalizedQuery) {
-      return 0;
-    }
-
-    let score = 0;
-
-    score += this.getVariantMatchScore(item.name, queryVariants, 120, 90);
-    score += this.getVariantMatchScore(
-      item.title.toLowerCase(),
-      queryVariants,
-      100,
-      70,
-    );
-    score += this.getVariantContainsScore(
-      item.description?.toLowerCase(),
-      queryVariants,
-      35,
-    );
-    score += this.getVariantMatchScore(item.kind.toLowerCase(), queryVariants, 25, 15);
-    score += this.getVariantMatchScore(
-      item.registryType.toLowerCase(),
-      queryVariants,
-      25,
-      15,
-    );
-    score += this.getSearchTermScore(searchTerms, queryVariants, 40, 20);
-
-    if (
-      queryTerms.length > 0 &&
-      queryTerms.every((queryTerm) =>
-        searchTerms.some((term) => term.includes(queryTerm)),
-      )
-    ) {
-      score += 15;
-    }
-
-    return score;
-  }
-
-  private getVariantMatchScore(
-    value: string,
-    variants: string[],
-    exactScore: number,
-    containsScore: number,
-  ): number {
-    let bestScore = 0;
-
-    for (const variant of variants) {
-      if (!variant) {
-        continue;
-      }
-
-      if (value === variant) {
-        bestScore = Math.max(bestScore, exactScore);
-        continue;
-      }
-
-      if (value.includes(variant)) {
-        bestScore = Math.max(bestScore, containsScore);
-      }
-    }
-
-    return bestScore;
-  }
-
-  private getVariantContainsScore(
-    value: string | undefined,
-    variants: string[],
-    containsScore: number,
-  ): number {
-    if (!value) {
-      return 0;
-    }
-
-    return variants.some((variant) => variant && value.includes(variant))
-      ? containsScore
-      : 0;
-  }
-
-  private getSearchTermScore(
-    searchTerms: string[],
-    variants: string[],
-    exactScore: number,
-    containsScore: number,
-  ): number {
-    for (const variant of variants) {
-      if (!variant) {
-        continue;
-      }
-
-      if (searchTerms.some((term) => term === variant)) {
-        return exactScore;
-      }
-    }
-
-    for (const variant of variants) {
-      if (!variant) {
-        continue;
-      }
-
-      if (searchTerms.some((term) => term.includes(variant))) {
-        return containsScore;
-      }
-    }
-
-    return 0;
-  }
-
   private getAvailableKinds(catalog: RegistryCatalogItem[]): string[] {
     return [...new Set(catalog.map((item) => item.kind))].sort();
   }
@@ -438,14 +252,6 @@ export class RegistryService {
     }
   }
 
-  private normalizeLimit(limit?: number): number {
-    if (!limit || Number.isNaN(limit)) {
-      return DEFAULT_RESULT_LIMIT;
-    }
-
-    return Math.min(Math.max(Math.trunc(limit), 1), MAX_RESULT_LIMIT);
-  }
-
   private normalizeOffset(offset?: number): number {
     if (offset === undefined || Number.isNaN(offset)) {
       return 0;
@@ -458,8 +264,8 @@ export class RegistryService {
     items,
     options,
   }: PaginateItemsParams<T>): PaginateItemsResult<T> {
-    const limit = this.normalizeLimit(options?.limit);
     const offset = this.normalizeOffset(options?.offset);
+    const limit = options?.limit ?? items.length;
     const paginatedItems = items.slice(offset, offset + limit);
     const nextOffset = offset + paginatedItems.length;
     const hasMore = nextOffset < items.length;
@@ -503,72 +309,6 @@ export class RegistryService {
       const relatedItem = catalogByName.get(relatedName);
       return relatedItem ? [relatedItem] : [];
     });
-  }
-
-  private buildSearchTerms(item: RegistryCatalogItem): string[] {
-    const fields = [
-      item.name,
-      item.title,
-      item.description ?? "",
-      item.kind,
-      item.registryType,
-    ];
-
-    return [...new Set(fields.flatMap((field) => this.tokenizeSearchValue(field)))];
-  }
-
-  private tokenizeSearchValue(value: string): string[] {
-    const formatted = formatSearchString(value);
-
-    if (!formatted) {
-      return [];
-    }
-
-    const { normalizedValue, rawTokens } = formatted;
-
-    const normalizedTokens = rawTokens.flatMap((token) => {
-      const singularToken = this.toSingularToken(token);
-
-      return singularToken && singularToken !== token
-        ? [token, singularToken]
-        : [token];
-    });
-
-    return [...new Set([normalizedValue, ...normalizedTokens])];
-  }
-
-  private tokenizeSearchWords(value: string): string[] {
-    const formatted = formatSearchString(value);
-
-    if (!formatted) {
-      return [];
-    }
-
-    return [
-      ...new Set(
-        formatted.rawTokens.map((token) => this.toSingularToken(token) ?? token),
-      ),
-    ];
-  }
-
-  private toSingularToken(token: string): string | undefined {
-    if (token.length <= 3 || token.endsWith("ss")) {
-      return undefined;
-    }
-
-    if (token.endsWith("ies") && token.length > 4) {
-      return `${token.slice(0, -3)}y`;
-    }
-
-    if (/(ches|shes|xes|zes|ses|oes)$/.test(token) && token.length > 4) {
-      return token.slice(0, -2);
-    }
-
-    if (token.endsWith("s") && token.length > 3) {
-      return token.slice(0, -1);
-    }
-
-    return undefined;
   }
 
   private extractRegistryDependencyNames(

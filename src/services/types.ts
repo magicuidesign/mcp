@@ -11,26 +11,13 @@ export type PaginatedResult<T> = {
 
 export type ListRegistryItemsParams = {
     kind?: string;
-    query?: string;
     limit?: number;
     offset?: number;
 };
 
 export type ListRegistryItemsResult = Promise<{
     availableKinds: string[];
-} & PaginatedResult<RegistryCatalogItem>>;
-
-export type SearchRegistryItemsParams = {
-    query: string;
-    kind?: string;
-    limit?: number;
-    offset?: number;
-};
-
-export type SearchRegistryItemsResult = Promise<{
-    query: string;
-    availableKinds: string[];
-} & PaginatedResult<RegistryCatalogItem>>;
+} & PaginatedResult<Pick<RegistryCatalogItem, "name" | "description">>>;
 
 export type GetRegistryItemOption =
     | "includeSource"
@@ -46,16 +33,6 @@ export type GetRegistryItemParams = {
     options?: GetRegistryItemOptions;
 };
 
-
-export type FilterCatalogOptions = Partial<{
-    kind: string;
-    query: string;
-}>;
-
-export type FilterCatalogParams = {
-    catalog: RegistryCatalogItem[];
-    options?: FilterCatalogOptions;
-};
 
 export type PaginateItemsOptions<T> = Partial<
     Pick<PaginatedResult<T>, "limit" | "offset">
