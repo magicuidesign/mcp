@@ -33,7 +33,11 @@ const listRegistryItemsSchema = {
 };
 
 const getRegistryItemSchema = {
-  name: z.string().describe("Exact registry item name, for example marquee."),
+  name: z
+    .string()
+    .describe(
+      "Registry item name, for example marquee. The @magicui/marquee form and the item registryUrl are also accepted.",
+    ),
   includeSource: z
     .boolean()
     .optional()

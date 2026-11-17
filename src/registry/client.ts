@@ -14,7 +14,7 @@ import {
 } from "./schemas.js";
 
 const REGISTRY_URL = "https://magicui.design/registry.json";
-const REGISTRY_ITEM_BASE_URL = "https://magicui.design/r";
+export const REGISTRY_ITEM_BASE_URL = "https://magicui.design/r";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 async function fetchJson<T>(

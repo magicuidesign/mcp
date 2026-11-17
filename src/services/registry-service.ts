@@ -7,6 +7,7 @@ import type {
   RegistrySnapshot,
 } from "../domain/registry.js";
 import {
+  REGISTRY_ITEM_BASE_URL,
   buildRegistryItemUrl,
   fetchExampleDetails,
   fetchRegistryEntries,
@@ -145,7 +146,16 @@ export class RegistryService {
   ): Promise<RegistryCatalogItemDetail> {
     const snapshot = await this.createSnapshot();
     const catalog = this.buildCatalog(snapshot);
-    const item = catalog.find((entry) => entry.name === name);
+    const requestedName = [`${REGISTRY_ITEM_BASE_URL}/`, "@magicui/"]
+      .reduce(
+        (value, prefix) =>
+          value.startsWith(prefix) ? value.slice(prefix.length) : value,
+        name.trim().toLowerCase(),
+      )
+      .replace(/\.json$/, "");
+    const item = catalog.find(
+      (entry) => entry.name.toLowerCase() === requestedName,
+    );
 
     if (!item) {
       throw new Error(`Registry item "${name}" was not found`);
@@ -154,11 +164,11 @@ export class RegistryService {
     const detail: RegistryCatalogItemDetail = {
       ...item,
       install: {
-        command: this.buildRegistryInstallCommand(name),
-        registryUrl: buildRegistryItemUrl(name),
+        command: this.buildRegistryInstallCommand(item.name),
+        registryUrl: buildRegistryItemUrl(item.name),
       },
-      dependencies: this.getEntryDependencies(snapshot.entries, name),
-      registryDependencies: this.getEntryRegistryDependencies(snapshot.entries, name),
+      dependencies: this.getEntryDependencies(snapshot.entries, item.name),
+      registryDependencies: this.getEntryRegistryDependencies(snapshot.entries, item.name),
     };
 
     const warnings: string[] = [];
@@ -169,20 +179,20 @@ export class RegistryService {
 
     if (options?.includeSource) {
       try {
-        const itemDetails = await this.fetchRegistryItemDetails(name);
+        const itemDetails = await this.fetchRegistryItemDetails(item.name);
         const source = this.buildRegistryItemSource(item, itemDetails);
 
         if (source) {
           detail.source = source;
         }
       } catch (error) {
-        console.error(`Error fetching source for registry item ${name}:`, error);
-        warnings.push(`Failed to fetch source for ${name}: ${getErrorMessage(error)}`);
+        console.error(`Error fetching source for registry item ${item.name}:`, error);
+        warnings.push(`Failed to fetch source for ${item.name}: ${getErrorMessage(error)}`);
       }
     }
 
     if (options?.includeExamples && item.kind === "component") {
-      const relatedExampleNames = snapshot.exampleNamesByComponent.get(name) ?? [];
+      const relatedExampleNames = snapshot.exampleNamesByComponent.get(item.name) ?? [];
       const exampleDetailsResults = await Promise.allSettled(
         relatedExampleNames.map((exampleName) => fetchExampleDetails(exampleName)),
       );
@@ -190,7 +200,7 @@ export class RegistryService {
       detail.examples = exampleDetailsResults.flatMap((result, index) => {
         if (result.status === "rejected") {
           console.error(
-            `Error fetching example ${relatedExampleNames[index]} for registry item ${name}:`,
+            `Error fetching example ${relatedExampleNames[index]} for registry item ${item.name}:`,
             result.reason,
           );
           warnings.push(
