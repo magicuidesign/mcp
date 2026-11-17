@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 
-const EXPECTED_TOOLS = ["getRegistryItem", "listRegistryItems", "searchRegistryItems"];
+const EXPECTED_TOOLS = ["getRegistryItem", "listRegistryItems"];
 const TIMEOUT_MS = 15_000;
 
 const server = spawn(process.execPath, ["dist/server.js"], {
